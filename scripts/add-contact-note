@@ -1,0 +1,10 @@
+#!/bin/zsh
+# add-contact-note — Add a quick note to a contact context file.
+#
+# Usage:
+#   add-contact-note "Acme Corp" "agreed to pilot in Q3"
+#   add-contact-note "Acme Corp"          # opens file in editor
+#   add-contact-note --list               # show all contact files
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$PROJECT_DIR/scripts/contact_note.py" "$@"

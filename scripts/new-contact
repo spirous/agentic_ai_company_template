@@ -1,0 +1,70 @@
+#!/bin/zsh
+# new-contact — Create a blank Contact Intelligence page in Confluence under a company.
+#
+# Usage:
+#   new-contact "Acme Corp" "Acme Corp (Parent Page)"
+#   new-contact "Acme Corp" "Acme Corp (Parent Page)" --space YOUR_SPACE
+#
+# Arguments:
+#   $1  Company short name (used for display messages only)
+#   $2  Exact parent page title in Confluence (the company's root page)
+#   --space  Confluence space key (default: read from .env)
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Load defaults from .env
+if [[ -f "$PROJECT_DIR/.env" ]]; then
+  set -a
+  source "$PROJECT_DIR/.env"
+  set +a
+fi
+
+SPACE="${CONFLUENCE_SPACE:-YOUR_SPACE_KEY}"
+COMPANY_SHORT=""
+PARENT_PAGE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --space) SPACE="$2"; shift 2 ;;
+    --help|-h)
+      echo "Usage: new-contact \"Company\" \"Parent Page Title\" [--space SPACE]"
+      echo ""
+      echo "Creates a blank Contact Intelligence page in Confluence"
+      echo "under the specified company parent page."
+      exit 0 ;;
+    -*)
+      echo "❌ Unknown option: $1"; exit 1 ;;
+    *)
+      if [[ -z "$COMPANY_SHORT" ]]; then
+        COMPANY_SHORT="$1"
+      elif [[ -z "$PARENT_PAGE" ]]; then
+        PARENT_PAGE="$1"
+      fi
+      shift ;;
+  esac
+done
+
+if [[ -z "$COMPANY_SHORT" || -z "$PARENT_PAGE" ]]; then
+  echo "Usage: new-contact \"Company\" \"Parent Page Title\" [--space SPACE]"
+  exit 1
+fi
+
+TEMPLATE="$PROJECT_DIR/engine/deliver/workflows/contact-intelligence/templates/contact_page_template.md"
+TEMP_FILE="$(mktemp /tmp/ci_new_XXXXXX.md)"
+
+{
+  printf -- "---\n"
+  printf 'confluence_space: "%s"\n' "$SPACE"
+  printf 'confluence_parent_page: "%s"\n' "$PARENT_PAGE"
+  printf 'confluence_title: "%s - Contact Intelligence"\n' "$COMPANY_SHORT"
+  printf -- "---\n"
+  cat "$TEMPLATE"
+} > "$TEMP_FILE"
+
+echo "📋 Creating '$COMPANY_SHORT - Contact Intelligence' under '$PARENT_PAGE'..."
+python3 "$PROJECT_DIR/scripts/publish_page.py" "$TEMP_FILE"
+STATUS=$?
+rm -f "$TEMP_FILE"
+exit $STATUS

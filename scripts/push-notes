@@ -1,0 +1,109 @@
+#!/bin/zsh
+# push-notes <notes_file> [--to SPACE_KEY/'Parent Page Title'] [--local [--model MODEL]]
+#
+# Transforms raw meeting notes with AI and publishes them to Confluence.
+#
+# Cloud (default): routes through Claude Code — full agentic pipeline.
+# Local (--local):  routes through local_pipeline.py calling Ollama directly.
+#
+# Usage:
+#   push-notes ~/Desktop/meeting.md
+#   push-notes ~/Desktop/meeting.md --to YOUR_SPACE/'Company - Meeting Notes'
+#   push-notes ~/Desktop/meeting.md --local
+#   push-notes ~/Desktop/meeting.md --local --model phi4:latest
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Load defaults from .env
+if [[ -f "$PROJECT_DIR/.env" ]]; then
+  set -a
+  source "$PROJECT_DIR/.env"
+  set +a
+fi
+
+SPACE="${CONFLUENCE_SPACE:-YOUR_SPACE_KEY}"
+PARENT="${CONFLUENCE_DEFAULT_PARENT:-Meeting Notes}"
+NOTES_FILE=""
+USE_LOCAL=false
+LOCAL_MODEL="phi4:latest"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --to)
+      DESTINATION="${2}"
+      SPACE="${DESTINATION%%/*}"
+      PARENT="${DESTINATION#*/}"
+      PARENT="${PARENT#\'}"
+      PARENT="${PARENT%\'}"
+      shift 2
+      ;;
+    --local)
+      USE_LOCAL=true
+      shift
+      ;;
+    --cloud)
+      USE_LOCAL=false
+      shift
+      ;;
+    --model)
+      LOCAL_MODEL="$2"
+      shift 2
+      ;;
+    --help|-h)
+      echo "Usage: push-notes <notes_file> [OPTIONS]"
+      echo ""
+      echo "Options:"
+      echo "  --to SPACE/'Parent'   Confluence destination (reads default from .env)"
+      echo "  --local               Run via local Ollama model (offline, no Claude Code)"
+      echo "  --model <name>        Ollama model to use with --local (default: phi4:latest)"
+      echo "  --cloud               Run via Anthropic Cloud / Claude Code (default)"
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1"
+      echo "Run 'push-notes --help' for usage."
+      exit 1
+      ;;
+    *)
+      NOTES_FILE="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$NOTES_FILE" ]]; then
+  echo "Usage: push-notes <notes_file> [--to SPACE/'Parent Page'] [--local]"
+  exit 1
+fi
+
+NOTES_FILE=$(realpath "$NOTES_FILE" 2>/dev/null || echo "$NOTES_FILE")
+
+if [[ ! -f "$NOTES_FILE" ]]; then
+  echo "❌ File not found: $NOTES_FILE"
+  exit 1
+fi
+
+if $USE_LOCAL; then
+  echo "📋 Notes:        $NOTES_FILE"
+  echo "🌐 Space:        $SPACE"
+  echo "📁 Parent page:  $PARENT"
+  echo "🤖 Model:        Local — $LOCAL_MODEL (Ollama)"
+  echo ""
+  python3 "$PROJECT_DIR/scripts/local_pipeline.py" \
+    "$NOTES_FILE" \
+    --space "$SPACE" \
+    --parent "$PARENT" \
+    --model "$LOCAL_MODEL"
+else
+  echo "📋 Notes:        $NOTES_FILE"
+  echo "🌐 Space:        $SPACE"
+  echo "📁 Parent page:  $PARENT"
+  echo "🤖 Model:        Cloud (Anthropic / Claude Code)"
+  echo ""
+  cd "$PROJECT_DIR"
+  unset ANTHROPIC_AUTH_TOKEN
+  unset ANTHROPIC_BASE_URL
+  claude --dangerously-skip-permissions -p \
+    "Run the complete workflow on $NOTES_FILE. Use Confluence Space: $SPACE and Parent Page: \"$PARENT\"." && \
+  python3 "$PROJECT_DIR/scripts/knowledge_utils.py" "$NOTES_FILE"
+fi

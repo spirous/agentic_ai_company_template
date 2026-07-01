@@ -1,0 +1,9 @@
+#!/bin/zsh
+# export-note — Export an Apple Note to a raw .md file ready for push-notes.
+#
+# Usage:
+#   export-note "Acme Corp"
+#   export-note "Acme Corp" --to YOUR_SPACE/'Acme Corp - Meeting Notes'
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$PROJECT_DIR/scripts/export_note_pipeline.py" "$@"

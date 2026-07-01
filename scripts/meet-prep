@@ -1,0 +1,10 @@
+#!/bin/zsh
+# meet-prep — Generate a pre-meeting brief from past notes and contact context.
+#
+# Usage:
+#   meet-prep "Acme Corp"
+#   meet-prep "Acme Corp" "focus on the renewal agreement"
+#   meet-prep "Acme Corp" --local
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$PROJECT_DIR/scripts/meeting_prep_pipeline.py" "$@"

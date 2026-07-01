@@ -1,0 +1,14 @@
+#!/bin/zsh
+# draft-email — Draft a reply or new email from the terminal.
+#
+# Usage:
+#   draft-email                                      # reply to clipboard email (cloud)
+#   draft-email --local                              # reply to clipboard (Ollama)
+#   draft-email --new "follow up on the proposal"   # new outbound email
+#   draft-email --file email.txt                     # read email from file
+#
+# Flow: clipboard → AI draft → [a]pprove / [i]terate / [e]dit / [d]iscard
+#       approve → copied to clipboard + saved to knowledge base
+
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$PROJECT_DIR/scripts/email_pipeline.py" "$@"
