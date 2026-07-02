@@ -128,6 +128,14 @@ push-notes <file>                                  # cloud, default destination
 push-notes <file> --to SPACE/'Parent Page'         # cloud, custom destination
 push-notes <file> --local                          # local Ollama model
 
+# ── Prospect Onboarding ─────────────────────────────────────────────────────
+onboard-prospect "Company" --country Germany --sector your_sector   # full Confluence hierarchy
+onboard-prospect "Company" --country Japan --sector new_sector --new-sector  # create new sector
+
+# ── Meeting Log (end-to-end) ─────────────────────────────────────────────────
+log-meeting "Company" --space PROJ1 --parent 'Company - Meeting Notes'
+log-meeting "Company" --space PROJ1 --parent 'Company - Meeting Notes' --topic "Q3 review"
+
 # ── Contact Intelligence ────────────────────────────────────────────────────
 new-contact "Company" "Parent Page Title"          # create CI page in Confluence
 follow-up "Company"                                # draft follow-up email (cloud)

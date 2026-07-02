@@ -38,6 +38,22 @@ These apply to ALL output: responses, emails, documents, summaries.
 - No bullet lists where a single sentence of prose reads naturally
 - No "I'd be happy to…", "Feel free to…", "Don't hesitate to…"
 
+## Trigger: Onboard Prospect
+When asked to run `onboard-prospect "Company" --country Country --sector sector`:
+1. Run `python3 scripts/onboard_prospect.py "Company" --country Country --sector sector`
+2. Script creates the full Confluence hierarchy: Industry → Companies → Geography → Country → Company → Meeting Notes
+3. For a new sector not yet in SECTORS dict, add `--new-sector` flag
+4. Output: confirmation of created/reused pages + next steps (fill company page, push notes, create CI page)
+
+Note: Configure SECTORS dict in `onboard_prospect.py` with your actual Confluence page IDs before first use.
+
+## Trigger: Log Meeting
+When asked to run `log-meeting "Company" --space SPACE --parent 'Parent Page'`:
+1. Run `python3 scripts/log_meeting.py "Company" --space SPACE --parent 'Parent Page'`
+2. Script: exports Apple Note → pushes to Confluence → optionally creates CI page → drafts follow-up email via Ollama
+3. Interactive prompts guide through each step; any step can be skipped
+4. Email draft uses local Ollama — nothing leaves the laptop
+
 ## Trigger: Loan Agreement
 When asked to run `fill-loan "Company" --type [standard|ds]` or to prepare/draft a loan agreement:
 1. Read `./engine/legal/agents/loan_agent.txt`
@@ -91,6 +107,8 @@ When asked to run `irl-review`:
 | `review-contacts` | Weekly review: draft emails for all overdue contacts |
 | `fill-loan "Company" --type standard` | Collect fields → output fields JSON + terminal command (Word + Confluence + email, all local) |
 | `fill-loan "Company" --type ds` | Same, your company handles shipping both ways |
+| `onboard-prospect "Co" --country C --sector S` | Create full Confluence company hierarchy for a new prospect |
+| `log-meeting "Co" --space S --parent 'Parent'` | Apple Note → Confluence → CI page → email draft in one command |
 | `irl-new "Initiative Name"` | Guided chat interview → build initiative profile |
 | `irl-assess "Initiative Name"` | Read initiative profile → assessment table, risk flags |
 | `irl-advance "Initiative Name" DIM` | Load dimension agent → action plan + draft artifact |
