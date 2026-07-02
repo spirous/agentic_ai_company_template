@@ -115,6 +115,8 @@ The user always confirms before anything is saved — nothing is written silentl
 | `contact-intelligence` | ✅ Active | Confluence CI page | Dashboard (Confluence) + email drafts (local) | `follow-up`, `review-contacts` |
 | `email-intelligence` | ✅ Active | Clipboard / description | Interactive draft → clipboard | `draft-email` |
 | `meet-prep` | ✅ Active | Company name | Brief → Apple Notes | `meet-prep` |
+| `loan-agreements` | ✅ Active | Company + equipment + signatory fields | Filled .docx (local) + Confluence tracking page + email draft via Ollama | `fill-loan` |
+| `irl-decision` | ✅ Active | Initiative name + guided interview | IRL profile `.md` + assessment table + dimension action plans | `irl-new`, `irl-assess`, `irl-advance`, `irl-review` |
 
 ---
 
@@ -150,6 +152,20 @@ meet-prep "Company" --local                        # via Ollama
 add-contact-note "Company" "quick note"            # append dated note
 add-contact-note "Company"                         # open file in editor
 add-contact-note --list                            # show all contact files
+
+# ── Legal — Loan Agreements ─────────────────────────────────────────────────
+# Terminal command — runs entirely locally (Word fill + Confluence page + Ollama email):
+fill-loan --company "Institute" --type standard --fields engine/legal/workflows/loan-agreements/active/fields_COMPANY.json --recipient "First Last" --recipient-email contact@institute.org
+fill-loan ... --type ds                            # your company handles shipping both ways
+fill-loan ... --skip-confluence                    # renewal — page already exists
+fill-loan ... --dry-run                            # preview Confluence page without creating
+# In Claude Code: type fill-loan "Company" → guided field collection → outputs fields JSON + command
+
+# ── IRL Decision Framework ───────────────────────────────────────────────────
+irl-new "Initiative Name"                          # guided interview → build initiative profile
+irl-assess "Initiative Name"                       # assessment table, risk flags, priority dimension
+irl-advance "Initiative Name" DIM                  # action plan + draft artifact for next level
+irl-review                                         # portfolio matrix, stalled items, top priorities
 
 # ── Cron ────────────────────────────────────────────────────────────────────
 zsh scripts/setup-cron.sh                          # install Monday 08:00 cron

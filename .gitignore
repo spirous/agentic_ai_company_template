@@ -2,3 +2,8 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# Legal — loan agreement templates and filled documents never leave the laptop
+engine/legal/workflows/loan-agreements/templates/
+engine/legal/workflows/loan-agreements/active/
+engine/legal/workflows/loan-agreements/archive/
