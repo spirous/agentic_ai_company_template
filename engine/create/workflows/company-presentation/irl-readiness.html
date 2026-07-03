@@ -1,0 +1,536 @@
+<title>YOUR_INITIATIVE — Innovation Readiness Level</title>
+
+<style>
+:root {
+  --gr:      #141924;
+  --surface: #1C2338;
+  --track:   #222B42;
+  --text:    #D8E0ED;
+  --muted:   #8094B8;
+  --dim:     #536078;
+  --accent:  #1FD1B5;
+  --warm:    #F5A623;
+  --good:    #2DD4A0;
+  --watch:   #F5A623;
+  --risk:    #F07070;
+  --ff:  system-ui, 'Segoe UI', sans-serif;
+  --ffd: 'SF Mono', 'Consolas', 'Courier New', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--gr);
+  color: var(--text);
+  font-family: var(--ff);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 52px 24px 72px;
+}
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 3px, rgba(0,0,0,0.015) 3px, rgba(0,0,0,0.015) 4px);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.wrap { width: 100%; max-width: 840px; }
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+.hd { margin-bottom: 44px; }
+.eye { font-family: var(--ffd); font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.hd-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.title { font-size: 28px; font-weight: 700; letter-spacing: -0.026em; line-height: 1.1; }
+.btns { display: flex; gap: 8px; padding-bottom: 4px; }
+.btn { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); font-family: var(--ffd); font-size: 10px; letter-spacing: 0.12em; padding: 6px 13px; border-radius: 3px; cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.btn:hover { color: var(--text); border-color: rgba(255,255,255,0.24); }
+.btn.on  { border-color: rgba(31,209,181,0.45); color: var(--accent); background: rgba(31,209,181,0.07); }
+.meta { font-family: var(--ffd); font-size: 11px; color: var(--muted); margin-bottom: 20px; }
+.rule { height: 1px; background: linear-gradient(90deg, rgba(31,209,181,0.5) 0%, transparent 50%); }
+
+/* ── Grid shared by scale row and each dim row ─────────────────────────────── */
+.G { display: grid; grid-template-columns: 170px 1fr 102px; column-gap: 18px; align-items: center; }
+
+/* ── Scale ──────────────────────────────────────────────────────────────────── */
+.scale-wrap { position: relative; height: 20px; }
+.sn { position: absolute; font-family: var(--ffd); font-size: 9px; color: var(--muted); transform: translateX(-50%); top: 5px; }
+
+/* ── Dims ────────────────────────────────────────────────────────────────────── */
+.dims { display: flex; flex-direction: column; margin-bottom: 36px; }
+.block { margin-bottom: 22px; }
+
+/* Label */
+.lbl-row { display: flex; align-items: flex-start; gap: 7px; }
+.lbl-code { font-family: var(--ffd); font-size: 10px; letter-spacing: 0.18em; color: var(--muted); margin-bottom: 4px; }
+.lbl-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1; }
+.expand-btn { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 11px; padding: 0; margin-top: 2px; line-height: 1; transition: color 0.15s, transform 0.2s; flex-shrink: 0; }
+.expand-btn:hover { color: var(--muted); }
+.expand-btn.on { color: var(--accent); transform: rotate(180deg); }
+
+/* Track area */
+.tw { position: relative; cursor: crosshair; }
+.track { height: 20px; background: var(--track); border-radius: 3px; position: relative; overflow: hidden; }
+
+/* Tick marks overlay (inside track, clipped) */
+.track::after {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(90deg,
+    transparent calc(100%/9 - 0.5px),
+    rgba(255,255,255,0.06) calc(100%/9 - 0.5px),
+    rgba(255,255,255,0.06) calc(100%/9));
+  z-index: 3; pointer-events: none;
+}
+
+/* Hover line (inside track) */
+.hvr { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.45); z-index: 4; opacity: 0; pointer-events: none; }
+
+/* Fill bar (inside track) */
+.fill { position: absolute; top: 0; left: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #1ABBA0 0%, #26EDD4 100%); z-index: 1; transition: width 0.42s cubic-bezier(0.22,1,0.36,1); }
+.flbl { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-family: var(--ffd); font-size: 10px; font-weight: 800; color: #0C1520; opacity: 0; z-index: 2; pointer-events: none; transition: opacity 0.15s 0.3s; }
+.flbl.v { opacity: 1; }
+
+/* Target marker (outside track, sibling — NOT clipped) */
+.tmark { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--warm); z-index: 4; left: 0; transition: left 0.42s cubic-bezier(0.22,1,0.36,1); }
+.tmark::before { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: var(--warm); }
+
+/* Tooltip */
+.tip { position: absolute; top: -30px; transform: translateX(-50%); background: var(--surface); border: 1px solid rgba(255,255,255,0.14); color: var(--text); font-family: var(--ffd); font-size: 10px; padding: 3px 8px; border-radius: 3px; pointer-events: none; white-space: nowrap; z-index: 10; opacity: 0; transition: opacity 0.1s; }
+
+/* Controls */
+.ctrl { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.cg { display: flex; align-items: center; gap: 5px; }
+.sb { width: 18px; height: 18px; background: none; border: 1px solid rgba(255,255,255,0.13); border-radius: 2px; color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--ffd); padding: 0; transition: border-color 0.12s, color 0.12s; }
+.sb:hover { border-color: rgba(255,255,255,0.32); color: var(--text); }
+.sb.w { border-color: rgba(245,166,35,0.22); color: rgba(245,166,35,0.65); }
+.sb.w:hover { border-color: rgba(245,166,35,0.55); color: var(--warm); }
+.vc { font-family: var(--ffd); font-size: 20px; font-weight: 700; color: var(--accent); width: 26px; text-align: center; line-height: 1; }
+.vt { font-family: var(--ffd); font-size: 12px; color: var(--warm); width: 26px; text-align: center; line-height: 1; }
+.gbadge { font-family: var(--ffd); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.04em; align-self: flex-end; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.gg { background: rgba(45,212,160,0.10); color: #2DD4A0; border: 1px solid rgba(45,212,160,0.28); }
+.gw { background: rgba(245,166,35,0.10); color: #F5A623; border: 1px solid rgba(245,166,35,0.28); }
+.gr { background: rgba(240,112,112,0.10); color: #F07070; border: 1px solid rgba(240,112,112,0.28); }
+
+/* Next step row */
+.nxt { display: none; margin-top: 10px; padding: 10px 0 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.nxt.v { display: grid; grid-template-columns: 170px 1fr 102px; column-gap: 18px; }
+.nxt-lbl { font-family: var(--ffd); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); padding-top: 2px; }
+.nxt-txt { font-size: 11px; color: var(--muted); line-height: 1.65; }
+
+/* ── Legend ──────────────────────────────────────────────────────────────────── */
+.legend { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px; }
+.li { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+.lb { width: 22px; height: 7px; background: linear-gradient(90deg, #1ABBA0, #26EDD4); border-radius: 1px; }
+.lm { position: relative; width: 2px; height: 15px; background: var(--warm); }
+.lm::before { content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%); border: 3px solid transparent; border-top-color: var(--warm); }
+.lpush { margin-left: auto; }
+
+/* ── Footer ──────────────────────────────────────────────────────────────────── */
+.foot { font-family: var(--ffd); font-size: 9px; color: var(--dim); letter-spacing: 0.08em; }
+
+/* ── Print / Export ──────────────────────────────────────────────────────────── */
+@media print {
+  @page { size: A4 landscape; margin: 14mm 16mm; }
+  body { padding: 0; background: var(--gr) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body::after { display: none; }
+  .btns { display: none; }
+  .sb, .expand-btn { display: none; }
+  .nxt { display: none !important; }
+  .ctrl { gap: 2px; }
+  .cg { pointer-events: none; }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 620px) {
+  .G    { grid-template-columns: 108px 1fr 90px; column-gap: 10px; }
+  .nxt.v { grid-template-columns: 108px 1fr 90px; column-gap: 10px; }
+  .lbl-name { font-size: 11px; }
+  .title { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fill, .tmark { transition: none; }
+  .flbl { transition: none; opacity: 1; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="hd">
+    <div class="eye">YOUR_TEAM_ABBR &nbsp;·&nbsp; YOUR_TEAM_NAME</div>
+    <div class="hd-row">
+      <h1 class="title">YOUR_INITIATIVE<br>Innovation Readiness Level (IRL)</h1>
+      <div class="btns">
+        <button class="btn" id="btnNext" onclick="toggleNext()">NEXT STEPS</button>
+        <button class="btn" onclick="resetAll()">RESET</button>
+        <button class="btn" onclick="exportPNG()" title="Download as PNG for slides">EXPORT</button>
+      </div>
+    </div>
+    <div class="meta">KTH Innovation Readiness Level &nbsp;·&nbsp; YOUR_DATE &nbsp;·&nbsp; YOUR_COMPANY</div>
+    <div class="rule"></div>
+  </header>
+
+  <!-- Scale labels row -->
+  <div class="G" style="margin-bottom:10px;">
+    <span></span>
+    <div class="scale-wrap" id="scaleRow"></div>
+    <span></span>
+  </div>
+
+  <div class="dims" id="dimsRoot"></div>
+
+  <div class="legend">
+    <div class="li"><div class="lb"></div><span>Current level — click bar or use +/−</span></div>
+    <div class="li"><div class="lm"></div><span>12–24 month target</span></div>
+    <div class="lpush">
+      <div class="li">
+        <span style="font-family:var(--ffd);font-size:13px;color:var(--muted);">Δ</span>
+        <span>Gap to target</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">YOUR_COMPANY &nbsp;/&nbsp; YOUR_TEAM_NAME &nbsp;/&nbsp; Assessed YOUR_DATE &nbsp;/&nbsp; Scale 1–9 &nbsp;/&nbsp; KTH Innovation Readiness Level framework</p>
+
+</div>
+
+<script>
+// ── Data (update DIMS before each presentation) ───────────────────────────────
+// ── UPDATE these values before each presentation ─────────────────────────────
+// cur = current level (1–9), tgt = 12–24 month target, next = what must happen to reach tgt
+var DEFAULTS = [
+  { code:'CRL',  name:'Customer Readiness Level',   cur:1, tgt:3,
+    next:'Describe what must happen to reach the target Customer Readiness Level in the next 12–24 months.' },
+  { code:'TRL',  name:'Technology Readiness Level',  cur:1, tgt:3,
+    next:'Describe what must happen to reach the target Technology Readiness Level in the next 12–24 months.' },
+  { code:'BRL',  name:'Business Readiness Level',    cur:1, tgt:3,
+    next:'Describe what must happen to reach the target Business Readiness Level in the next 12–24 months.' },
+  { code:'IPRL', name:'IP Readiness Level',          cur:1, tgt:3,
+    next:'Describe what must happen to reach the target IP Readiness Level in the next 12–24 months.' },
+  { code:'TMRL', name:'Team Readiness Level',        cur:1, tgt:3,
+    next:'Describe what must happen to reach the target Team Readiness Level in the next 12–24 months.' },
+  { code:'FRL',  name:'Funding Readiness Level',     cur:1, tgt:3,
+    next:'Describe what must happen to reach the target Funding Readiness Level in the next 12–24 months.' },
+];
+
+var state = DEFAULTS.map(function(d){ return { code:d.code, name:d.name, cur:d.cur, tgt:d.tgt, next:d.next }; });
+var nextVis = false;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function gClass(gap){ return gap<=1 ? 'gg' : gap<=2 ? 'gw' : 'gr'; }
+
+function render(i) {
+  var d = state[i];
+  var gap     = d.tgt - d.cur;
+  var fillPct = (d.cur / 9) * 100;
+  var tgtPct  = (d.tgt / 9) * 100;
+
+  document.getElementById('f'+i).style.width = fillPct + '%';
+  document.getElementById('tm'+i).style.left = 'calc(' + tgtPct + '% - 1px)';
+
+  var flbl = document.getElementById('fl'+i);
+  flbl.textContent = d.cur;
+  flbl.className   = d.cur >= 3 ? 'flbl v' : 'flbl';
+
+  document.getElementById('vc'+i).textContent = d.cur;
+  document.getElementById('vt'+i).textContent = d.tgt;
+
+  var gb = document.getElementById('gb'+i);
+  gb.textContent = 'Δ' + gap;
+  gb.className   = 'gbadge ' + gClass(gap);
+}
+
+function stepVal(i, which, delta) {
+  var d = state[i];
+  if (which === 'cur') {
+    d.cur = Math.max(1, Math.min(9, d.cur + delta));
+    if (d.tgt < d.cur) d.tgt = d.cur;
+  } else {
+    d.tgt = Math.max(d.cur, Math.min(9, d.tgt + delta));
+  }
+  render(i);
+}
+
+function resetAll() {
+  DEFAULTS.forEach(function(def, i) { state[i].cur = def.cur; state[i].tgt = def.tgt; render(i); });
+}
+
+function toggleRow(i) {
+  var nxt = document.querySelectorAll('.nxt')[i];
+  var btn = document.getElementById('xbtn' + i);
+  var isOpen = nxt.classList.toggle('v');
+  if (btn) btn.classList.toggle('on', isOpen);
+}
+
+function toggleNext() {
+  nextVis = !nextVis;
+  document.querySelectorAll('.nxt').forEach(function(el, i) {
+    el.classList.toggle('v', nextVis);
+    var btn = document.getElementById('xbtn' + i);
+    if (btn) btn.classList.toggle('on', nextVis);
+  });
+  document.getElementById('btnNext').classList.toggle('on', nextVis);
+}
+
+// ── Build scale labels ────────────────────────────────────────────────────────
+var sr = document.getElementById('scaleRow');
+for (var n = 1; n <= 9; n++) {
+  var sp = document.createElement('span');
+  sp.className = 'sn';
+  sp.style.left = (((n - 0.5) / 9) * 100) + '%';
+  sp.textContent = n;
+  sr.appendChild(sp);
+}
+
+// ── Build dimension rows ──────────────────────────────────────────────────────
+var root = document.getElementById('dimsRoot');
+
+state.forEach(function(d, i) {
+  var block = document.createElement('div');
+  block.className = 'block';
+
+  // Main row
+  var main = document.createElement('div');
+  main.className = 'G';
+
+  // Label cell
+  var lblDiv = document.createElement('div');
+  lblDiv.innerHTML =
+    '<div class="lbl-code">' + d.code + '</div>' +
+    '<div class="lbl-row">' +
+      '<div class="lbl-name">' + d.name + '</div>' +
+      '<button class="expand-btn" id="xbtn' + i + '" onclick="toggleRow(' + i + ')" title="Show next step">▼</button>' +
+    '</div>';
+
+  // Track cell
+  var tw = document.createElement('div');
+  tw.className = 'tw';
+  tw.id = 'tw' + i;
+  tw.innerHTML =
+    '<div class="tip" id="tip' + i + '">Level</div>' +
+    '<div class="track" id="tr' + i + '">' +
+      '<div class="hvr" id="hv' + i + '"></div>' +
+      '<div class="fill" id="f' + i + '"><span class="flbl" id="fl' + i + '"></span></div>' +
+    '</div>' +
+    '<div class="tmark" id="tm' + i + '"></div>';
+
+  // Controls cell
+  var ctrl = document.createElement('div');
+  ctrl.className = 'ctrl';
+  ctrl.innerHTML =
+    '<div class="cg">' +
+      '<button class="sb" onclick="stepVal(' + i + ',\'cur\',-1)">−</button>' +
+      '<span class="vc" id="vc' + i + '">' + d.cur + '</span>' +
+      '<button class="sb" onclick="stepVal(' + i + ',\'cur\',1)">+</button>' +
+    '</div>' +
+    '<div style="font-family:var(--ffd);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);text-align:center;line-height:1;margin-bottom:-1px;">12–24 mo</div>' +
+    '<div class="cg">' +
+      '<button class="sb w" onclick="stepVal(' + i + ',\'tgt\',-1)">−</button>' +
+      '<span class="vt" id="vt' + i + '">' + d.tgt + '</span>' +
+      '<button class="sb w" onclick="stepVal(' + i + ',\'tgt\',1)">+</button>' +
+    '</div>' +
+    '<div class="gbadge ' + gClass(d.tgt - d.cur) + '" id="gb' + i + '">Δ' + (d.tgt - d.cur) + '</div>';
+
+  main.appendChild(lblDiv);
+  main.appendChild(tw);
+  main.appendChild(ctrl);
+
+  // Next step row
+  var nxt = document.createElement('div');
+  nxt.className = 'nxt';
+  nxt.innerHTML =
+    '<div class="nxt-lbl">Next step</div>' +
+    '<div class="nxt-txt">' + d.next + '</div>' +
+    '<div></div>';
+
+  block.appendChild(main);
+  block.appendChild(nxt);
+  root.appendChild(block);
+
+  // ── Track interaction ───────────────────────────────────────────────────────
+  var track = document.getElementById('tr' + i);
+  var hv    = document.getElementById('hv' + i);
+  var tip   = document.getElementById('tip' + i);
+
+  track.addEventListener('click', function(idx) {
+    return function(e) {
+      var rect  = track.getBoundingClientRect();
+      var pct   = (e.clientX - rect.left) / rect.width;
+      var level = Math.max(1, Math.min(9, Math.ceil(pct * 9)));
+      state[idx].cur = level;
+      if (state[idx].tgt < level) state[idx].tgt = level;
+      render(idx);
+      hv.style.opacity = '0';
+    };
+  }(i));
+
+  track.addEventListener('mousemove', function(idx, hvEl, tipEl) {
+    return function(e) {
+      var rect   = track.getBoundingClientRect();
+      var pct    = (e.clientX - rect.left) / rect.width;
+      var level  = Math.max(1, Math.min(9, Math.ceil(pct * 9)));
+      var linePct = (level / 9) * 100;
+      hvEl.style.left    = linePct + '%';
+      hvEl.style.opacity = level !== state[idx].cur ? '1' : '0';
+      tipEl.textContent  = 'Level ' + level;
+      tipEl.style.left   = ((level - 0.5) / 9 * 100) + '%';
+      tipEl.style.opacity = '1';
+    };
+  }(i, hv, tip));
+
+  track.addEventListener('mouseleave', function(hvEl, tipEl) {
+    return function() { hvEl.style.opacity = '0'; tipEl.style.opacity = '0'; };
+  }(hv, tip));
+
+  // ── Animate in with stagger ─────────────────────────────────────────────────
+  setTimeout(function(idx){ render(idx); }(i), 80 + i * 110);
+});
+
+// ── PNG Export ────────────────────────────────────────────────────────────────
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function exportPNG() {
+  var cvs = document.createElement('canvas');
+  var W = 1680, H = 960;
+  cvs.width = W; cvs.height = H;
+  var ctx = cvs.getContext('2d');
+
+  var C = { gr:'#141924', track:'#222B42', text:'#D8E0ED', muted:'#8094B8',
+            dim:'#536078', accent:'#1FD1B5', warm:'#F5A623',
+            good:'#2DD4A0', watch:'#F5A623', risk:'#F07070' };
+  function gapColor(n){ return n<=1 ? C.good : n<=2 ? C.watch : C.risk; }
+
+  // Background
+  ctx.fillStyle = C.gr;
+  ctx.fillRect(0, 0, W, H);
+
+  var PX = 64, colGap = 28;
+  var lblW = 230, ctrlW = 160;
+  var innerW = W - PX*2;
+  var trackX = PX + lblW + colGap;
+  var trackW = innerW - lblW - ctrlW - colGap*2;
+  var ctrlX  = trackX + trackW + colGap;
+  var y = 52;
+
+  // Eyebrow
+  ctx.font = '700 20px "SF Mono",Consolas,monospace';
+  ctx.fillStyle = C.accent; ctx.textAlign = 'left';
+  ctx.fillText('YOUR_TEAM_ABBR  ·  YOUR_TEAM_NAME', PX, y);
+  y += 40;
+
+  // Title
+  ctx.font = '700 48px system-ui,sans-serif'; ctx.fillStyle = C.text;
+  ctx.fillText('YOUR_INITIATIVE', PX, y); y += 56;
+  ctx.font = '700 36px system-ui,sans-serif';
+  ctx.fillText('Innovation Readiness Level (IRL)', PX, y); y += 46;
+
+  // Meta
+  ctx.font = '400 18px "SF Mono",Consolas,monospace'; ctx.fillStyle = C.muted;
+  ctx.fillText('KTH Innovation Readiness Level  ·  YOUR_DATE  ·  YOUR_COMPANY', PX, y);
+  y += 28;
+
+  // Rule
+  var rg = ctx.createLinearGradient(PX,0,PX+innerW*0.5,0);
+  rg.addColorStop(0,'rgba(31,209,181,0.5)'); rg.addColorStop(1,'rgba(31,209,181,0)');
+  ctx.fillStyle = rg; ctx.fillRect(PX, y, innerW, 1); y += 24;
+
+  // Scale labels
+  ctx.font = '400 14px "SF Mono",Consolas,monospace';
+  ctx.fillStyle = C.muted; ctx.textAlign = 'center';
+  for (var n = 1; n <= 9; n++) {
+    ctx.fillText(n, trackX + ((n-0.5)/9)*trackW, y);
+  }
+  y += 26;
+
+  // Dim rows
+  var rowH = 86;
+  state.forEach(function(d, idx) {
+    var ry = y + idx*rowH;
+    var dimGap = d.tgt - d.cur;
+    var th = 28, ty2 = ry + 12;
+
+    // Label
+    ctx.textAlign = 'left';
+    ctx.font = '700 15px "SF Mono",Consolas,monospace'; ctx.fillStyle = C.muted;
+    ctx.fillText(d.code, PX, ry+15);
+    ctx.font = '600 20px system-ui,sans-serif'; ctx.fillStyle = C.text;
+    ctx.fillText(d.name, PX, ry+38);
+
+    // Track background
+    ctx.fillStyle = C.track;
+    roundRect(ctx, trackX, ty2, trackW, th, 3); ctx.fill();
+
+    // Tick marks
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+    for (var t = 1; t < 9; t++) {
+      var tx3 = trackX + (t/9)*trackW;
+      ctx.beginPath(); ctx.moveTo(tx3,ty2); ctx.lineTo(tx3,ty2+th); ctx.stroke();
+    }
+
+    // Fill bar (clipped)
+    ctx.save();
+    roundRect(ctx, trackX, ty2, trackW, th, 3); ctx.clip();
+    var fw = (d.cur/9)*trackW;
+    var fg = ctx.createLinearGradient(trackX,0,trackX+fw,0);
+    fg.addColorStop(0,'#1ABBA0'); fg.addColorStop(1,'#26EDD4');
+    ctx.fillStyle = fg; ctx.fillRect(trackX, ty2, fw, th);
+    if (d.cur >= 3) {
+      ctx.font = '800 12px "SF Mono",Consolas,monospace';
+      ctx.fillStyle = '#0C1520'; ctx.textAlign = 'right';
+      ctx.fillText(d.cur, trackX+fw-8, ty2+th/2+4);
+    }
+    ctx.restore();
+
+    // Target marker
+    var tmx = trackX + (d.tgt/9)*trackW - 1;
+    ctx.fillStyle = C.warm;
+    ctx.fillRect(tmx, ty2-6, 2, th+12);
+    ctx.beginPath(); ctx.moveTo(tmx-4,ty2-10); ctx.lineTo(tmx+6,ty2-10);
+    ctx.lineTo(tmx+1,ty2-4); ctx.closePath(); ctx.fill();
+
+    // Controls
+    var cvX = ctrlX + ctrlW*0.4;
+    ctx.textAlign = 'center';
+    ctx.font = '700 30px "SF Mono",Consolas,monospace'; ctx.fillStyle = C.accent;
+    ctx.fillText(d.cur, cvX, ry+30);
+    ctx.font = '400 11px "SF Mono",Consolas,monospace'; ctx.fillStyle = C.dim;
+    ctx.fillText('12-24 mo', cvX, ry+44);
+    ctx.font = '700 20px "SF Mono",Consolas,monospace'; ctx.fillStyle = C.warm;
+    ctx.fillText(d.tgt, cvX, ry+62);
+
+    // Gap
+    ctx.font = '700 16px "SF Mono",Consolas,monospace';
+    ctx.fillStyle = gapColor(dimGap); ctx.textAlign = 'right';
+    ctx.fillText('Δ'+dimGap, ctrlX+ctrlW, ry+62);
+  });
+
+  y += state.length * rowH + 18;
+
+  // Legend
+  ctx.textAlign = 'left';
+  var lg2 = ctx.createLinearGradient(PX,0,PX+36,0);
+  lg2.addColorStop(0,'#1ABBA0'); lg2.addColorStop(1,'#26EDD4');
+  ctx.fillStyle = lg2; ctx.fillRect(PX, y+5, 36, 10);
+  ctx.font = '400 16px system-ui,sans-serif'; ctx.fillStyle = C.muted;
+  ctx.fillText('Current level', PX+44, y+15);
+  ctx.fillStyle = C.warm; ctx.fillRect(PX+238, y+1, 2, 20);
+  ctx.fillStyle = C.muted; ctx.fillText('2-year target', PX+250, y+15);
+
+  // Footer
+  ctx.font = '400 13px "SF Mono",Consolas,monospace'; ctx.fillStyle = C.dim;
+  ctx.fillText('YOUR_COMPANY  /  YOUR_TEAM_NAME  /  Assessed YOUR_DATE  /  Scale 1–9  /  KTH Innovation Readiness Level framework', PX, H-26);
+
+  // Trigger download
+  var link = document.createElement('a');
+  link.download = 'battery-inline-ct-irl.png';
+  link.href = cvs.toDataURL('image/png');
+  link.click();
+}
+</script>
