@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YOUR_INITIATIVE · CRL Pipeline</title>
+<style>
+:root {
+  --bg:      #F0F4FA;
+  --surface: #FFFFFF;
+  --text:    #0D1B2E;
+  --muted:   #6E7F9B;
+  --dim:     #A0B0C8;
+  --border:  #D8E3F0;
+  --track:   #E4EDF8;
+  --c3: #94A3B8; --c4: #D97706; --c5: #2563EB; --c6: #059669; --c7: #7C3AED;
+  --c3-lt: #F1F5F9; --c4-lt: #FFFBEB; --c5-lt: #EFF6FF; --c6-lt: #ECFDF5; --c7-lt: #F5F3FF;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;font-size:13px;-webkit-font-smoothing:antialiased}
+
+.hd{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between}
+.hd h1{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.hd .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.hd-right{display:flex;gap:8px;align-items:center}
+.btn{padding:6px 13px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:background .1s}
+.btn:hover{background:var(--bg)}
+.btn.active{background:#EBF0FF;border-color:#2563EB;color:#2563EB}
+.btn.xp{background:#1746C4;color:#fff;border-color:#1746C4}
+.btn.xp:hover{background:#1238A8}
+
+.main{max-width:1180px;margin:0 auto;padding:20px 28px 48px}
+
+/* Stage rail */
+.rail{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-bottom:20px}
+.rnode{border-radius:6px;padding:9px 10px;border:1px solid var(--border)}
+.rnode .rlabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.rnode .rtitle{font-size:11px;font-weight:600;margin-bottom:3px;line-height:1.3}
+.rnode .rdesc{font-size:10.5px;line-height:1.4;color:inherit;opacity:.85}
+.r1{background:#F8FAFC;border-color:#CBD5E1;color:#64748B} .r1 .rlabel{color:#94A3B8}
+.r2{background:#F4F7FA;border-color:#A8B8CC;color:#4B5A70} .r2 .rlabel{color:#A8B8CC}
+.r3{background:var(--c3-lt);border-color:#C4CFE0;color:#4B5A70} .r3 .rlabel{color:var(--c3)}
+.r4{background:var(--c4-lt);border-color:#FCD34D;color:#78350F} .r4 .rlabel{color:var(--c4)}
+.r5{background:var(--c5-lt);border-color:#93C5FD;color:#1E3A5F} .r5 .rlabel{color:var(--c5)}
+.r6{background:var(--c6-lt);border-color:#6EE7B7;color:#064E3B} .r6 .rlabel{color:var(--c6)}
+.r7{background:var(--c7-lt);border-color:#C4B5FD;color:#3B1A6B} .r7 .rlabel{color:var(--c7)}
+.r8{background:#ECFEFF;border-color:#67E8F9;color:#0C4A6E} .r8 .rlabel{color:#0891B2}
+.r9{background:#E0F7FA;border-color:#4DD0E1;color:#064E3B} .r9 .rlabel{color:#0E7490}
+
+/* Section labels */
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 6px;padding-left:2px}
+
+/* Account rows */
+.accounts{display:flex;flex-direction:column;gap:6px}
+.ac{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.ac.holding{opacity:.85}
+.ac.drag-over{border-color:#1746C4;box-shadow:0 0 0 2px rgba(23,70,196,.12)}
+.ac.dragging{opacity:.4}
+
+/* Account header — 18px drag handle + name + nodes + momentum + expand */
+.ac-hd{display:grid;grid-template-columns:18px 1fr auto auto 28px;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+.ac-hd:hover{background:#FAFCFF}
+
+/* Drag handle */
+.drag-h{cursor:grab;color:var(--dim);font-size:14px;user-select:none;display:flex;align-items:center;padding-bottom:1px}
+.drag-h:active{cursor:grabbing}
+
+/* Name block */
+.ac-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ac-name{font-size:13px;font-weight:600;outline:none;cursor:text;border-radius:3px;padding:1px 4px;margin-left:-4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.ac-name:focus{background:#EBF0FF;text-overflow:clip}
+.ac-seg{font-size:11px;color:var(--muted);outline:none;cursor:text;border-radius:3px;padding:1px 4px;margin-left:-4px}
+.ac-seg:focus{background:#EBF0FF}
+[contenteditable]:empty:before{content:attr(data-ph);color:var(--dim);font-style:italic}
+
+/* CRL nodes */
+.crl-nodes{display:flex;align-items:center;gap:4px}
+.cn{width:30px;height:30px;border-radius:50%;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;cursor:pointer;transition:all .15s;flex-shrink:0;user-select:none}
+.cn:hover{filter:brightness(.92)}
+.cn.inactive{background:var(--track);border-color:transparent;color:var(--dim)}
+.cn.active-3{background:var(--c3);border-color:var(--c3);color:#fff}
+.cn.active-4{background:var(--c4);border-color:var(--c4);color:#fff}
+.cn.active-5{background:var(--c5);border-color:var(--c5);color:#fff}
+.cn.active-6{background:var(--c6);border-color:var(--c6);color:#fff}
+.cn.active-7{background:var(--c7);border-color:var(--c7);color:#fff}
+.cn.target-3{background:var(--surface);border-color:var(--c3);color:var(--c3)}
+.cn.target-4{background:var(--surface);border-color:var(--c4);color:var(--c4)}
+.cn.target-5{background:var(--surface);border-color:var(--c5);color:var(--c5)}
+.cn.target-6{background:var(--surface);border-color:var(--c6);color:var(--c6)}
+.cn.target-7{background:var(--surface);border-color:var(--c7);color:var(--c7)}
+.cn-sep{font-size:10px;color:var(--dim);margin:0 2px}
+
+.ac-mom{font-size:15px;font-weight:700;width:22px;text-align:center;cursor:pointer;user-select:none}
+.m-up{color:#059669} .m-flat{color:#A0B0C8} .m-down{color:#DC2626}
+
+.ac-xbtn{width:22px;height:22px;border-radius:4px;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);transition:transform .2s,background .1s;flex-shrink:0}
+.ac-xbtn:hover{background:var(--bg)}
+.ac-xbtn.open{transform:rotate(180deg)}
+
+/* Account level descriptions */
+.ac-desc{padding:5px 14px 5px 46px;font-size:11px;color:#4B5A70;background:#F8FAFC;border-top:1px solid var(--border);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.ac-desc .d-cur{font-weight:600}
+.ac-desc .d-tgt{opacity:.7}
+.ac-desc .d-sep{opacity:.35}
+/* Account detail */
+.ac-detail{display:none;border-top:1px solid var(--border);padding:12px 14px 14px}
+.ac-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.dfield{display:flex;flex-direction:column;gap:4px}
+.dfield label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.dfield .dval{font-size:12px;line-height:1.5;outline:none;border-radius:4px;padding:6px 8px;background:var(--bg);min-height:48px;cursor:text}
+.dfield .dval:focus{background:#EBF0FF}
+
+canvas{display:none}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div>
+    <h1>YOUR_INITIATIVE · CRL Pipeline</h1>
+    <div class="sub">KTH Customer Readiness Levels 3 to 7 · Active accounts mapped to first commercial sale</div>
+  </div>
+  <div class="hd-right">
+    <button class="btn" id="btnAll" onclick="toggleAll()">Expand All</button>
+    <button class="btn xp" onclick="exportPNG()">Export PNG</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="rail">
+    <div class="rnode r1">
+      <div class="rlabel">CRL 1</div>
+      <div class="rtitle">Market hypothesis</div>
+      <div class="rdesc">Hypothesis of possible needs in the market.</div>
+    </div>
+    <div class="rnode r2">
+      <div class="rlabel">CRL 2</div>
+      <div class="rtitle">Needs identified</div>
+      <div class="rdesc">Identified specific needs in the market.</div>
+    </div>
+    <div class="rnode r3">
+      <div class="rlabel">CRL 3 · Holding</div>
+      <div class="rtitle">First market feedback</div>
+      <div class="rdesc">First market feedback established.</div>
+    </div>
+    <div class="rnode r4">
+      <div class="rlabel">CRL 4 · Qualify</div>
+      <div class="rtitle">Problem/need confirmed</div>
+      <div class="rdesc">Confirmed problem/need from several customers or users.</div>
+    </div>
+    <div class="rnode r5">
+      <div class="rlabel">CRL 5 · Engage</div>
+      <div class="rtitle">Interest established</div>
+      <div class="rdesc">Established interest and relations with customers.</div>
+    </div>
+    <div class="rnode r6">
+      <div class="rlabel">CRL 6 · Validate</div>
+      <div class="rtitle">Benefits confirmed by testing</div>
+      <div class="rdesc">Benefits confirmed by first customer testing.</div>
+    </div>
+    <div class="rnode r7">
+      <div class="rlabel">CRL 7 · Close</div>
+      <div class="rtitle">Extended testing or first sales</div>
+      <div class="rdesc">Customers in extended testing or first test sales. Small number of active users.</div>
+    </div>
+    <div class="rnode r8">
+      <div class="rlabel">CRL 8</div>
+      <div class="rtitle">Commercial traction</div>
+      <div class="rdesc">First commercial sales and implemented sales process. Substantial number of active users.</div>
+    </div>
+    <div class="rnode r9">
+      <div class="rlabel">CRL 9</div>
+      <div class="rtitle">Scale</div>
+      <div class="rdesc">Widespread sales that scale. Large number of active users with substantial growth.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Active pipeline</div>
+  <div class="accounts" id="active-accounts"></div>
+
+  <div class="section-label" style="margin-top:20px">Holding pen · CRL 3 (direct contact made, no confirmed problem statement)</div>
+  <div class="accounts" id="holding-accounts"></div>
+
+</div>
+
+<canvas id="cv"></canvas>
+
+<script>
+// ── REPLACE THIS DATA WITH YOUR ACCOUNTS ──────────────────────────────────
+// DATA    = accounts at CRL 4–7 (active pipeline)
+// HOLDING = accounts at CRL 3 (direct contact made, not yet qualified)
+//
+// Fields per account:
+//   id:         unique slug — use codenames for NDA accounts
+//   name:       display name (editable in browser)
+//   seg:        market segment (editable in browser)
+//   crl:        current CRL level (3–7)
+//   target:     target CRL level
+//   momentum:   'up' | 'flat' | 'down'
+//   bottleneck: one sentence — the most important buyer-side blocker
+//   next:       one sentence — specific verifiable action required from buyer
+
+var DATA = [
+  {
+    id: 'account-1',
+    name: 'Account 1',
+    seg: 'YOUR_SEGMENT',
+    crl: 6, target: 7, momentum: 'up',
+    bottleneck: 'Contract review cycle pending final sign-off from the relevant stakeholder',
+    next: 'Procurement confirms agreement terms and target signature date'
+  },
+  {
+    id: 'account-2',
+    name: 'Account 2',
+    seg: 'YOUR_SEGMENT',
+    crl: 5, target: 7, momentum: 'up',
+    bottleneck: 'Value proposition not yet validated against their specific production requirements',
+    next: 'Engineering lead shares technical specifications for a detailed fit assessment'
+  },
+  {
+    id: 'account-3',
+    name: 'Account 3',
+    seg: 'YOUR_SEGMENT',
+    crl: 4, target: 6, momentum: 'flat',
+    bottleneck: 'Budget owner for capital equipment not yet introduced into discussions',
+    next: 'Contact introduces the person who controls the relevant equipment budget'
+  }
+];
+
+var HOLDING = [
+  {
+    id: 'account-4',
+    name: 'Account 4',
+    seg: 'YOUR_SEGMENT',
+    crl: 3, target: 5, momentum: 'flat',
+    bottleneck: 'Direct feedback received but no priority signal from the right stakeholder',
+    next: 'Contact confirms whether this problem is an active priority for their team'
+  }
+];
+// ─────────────────────────────────────────────────────────────────────────
+
+var LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+var LEVEL_COLORS = { 1:'#CBD5E1', 2:'#A8B8CC', 3:'#94A3B8', 4:'#D97706', 5:'#2563EB', 6:'#059669', 7:'#7C3AED', 8:'#0891B2', 9:'#0E7490' };
+var LEVEL_DESC = {
+  1:'Hypothesis of possible needs in the market.',
+  2:'Identified specific needs in the market.',
+  3:'First market feedback established.',
+  4:'Confirmed problem/need from several customers or users.',
+  5:'Established interest and relations with customers.',
+  6:'Benefits confirmed by first customer testing.',
+  7:'Customers in extended testing or first test sales. Small number of active users.',
+  8:'First commercial sales and implemented sales process. Substantial number of active users.',
+  9:'Widespread sales that scale. Large number of active users with substantial growth.'
+};
+var MOM_CYCLE = ['up','flat','down'];
+var MOM_SYM = { up:'↑', flat:'→', down:'↓' };
+var MOM_CLS = { up:'m-up', flat:'m-flat', down:'m-down' };
+
+/* ── Drag state ── */
+var dragId = null, dragHolding = false;
+
+function findIdx(arr, id) {
+  for (var i = 0; i < arr.length; i++) { if (arr[i].id === id) return i; }
+  return -1;
+}
+
+function onDragStart(e, id, h) {
+  dragId = id; dragHolding = !!h;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text', id);
+  setTimeout(function() {
+    var c = document.getElementById('card-' + id);
+    if (c) c.classList.add('dragging');
+  }, 0);
+}
+
+function onDragEnd(e, id) {
+  var c = document.getElementById('card-' + id);
+  if (c) c.classList.remove('dragging');
+  document.querySelectorAll('.ac').forEach(function(el) { el.classList.remove('drag-over'); });
+}
+
+function onDragOver(e, id, h) {
+  e.preventDefault();
+  if (!!h !== dragHolding) return;
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.ac').forEach(function(el) { el.classList.remove('drag-over'); });
+  if (id !== dragId) {
+    var c = document.getElementById('card-' + id);
+    if (c) c.classList.add('drag-over');
+  }
+}
+
+function onDragLeave(e, id) {
+  var c = document.getElementById('card-' + id);
+  if (c) c.classList.remove('drag-over');
+}
+
+function onDrop(e, id, h) {
+  e.preventDefault(); e.stopPropagation();
+  if (dragId === id || !!h !== dragHolding) return;
+  captureAll();
+  var arr = h ? HOLDING : DATA;
+  var si = findIdx(arr, dragId), ti = findIdx(arr, id);
+  if (si < 0 || ti < 0) return;
+  var item = arr.splice(si, 1)[0];
+  arr.splice(ti, 0, item);
+  renderAll();
+}
+
+/* ── Render ── */
+var allOpen = false;
+
+function renderNodes(ac, isHolding) {
+  var h = isHolding ? 1 : 0;
+  var html = '<div class="crl-nodes">';
+  LEVELS.forEach(function(n) {
+    var cls = 'cn';
+    if (n === ac.crl) cls += ' active-' + n;
+    else cls += ' inactive';
+    if (isHolding && n > 3) cls = 'cn inactive';
+    html += '<div class="' + cls + '" title="CRL ' + n + ': ' + LEVEL_DESC[n] + '" onclick="setCRL(\'' + ac.id + '\',' + n + ',' + h + ')">' + n + '</div>';
+  });
+  html += '<span class="cn-sep">→</span>';
+  LEVELS.forEach(function(n) {
+    var cls = 'cn';
+    if (n === ac.target) cls += ' target-' + n;
+    else cls += ' inactive';
+    html += '<div class="' + cls + '" title="Target CRL ' + n + ': ' + LEVEL_DESC[n] + '" onclick="setTarget(\'' + ac.id + '\',' + n + ',' + h + ')">' + n + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderAccount(ac, isHolding) {
+  var h = isHolding ? 1 : 0;
+  var nodes = renderNodes(ac, isHolding);
+  var holdCls = isHolding ? ' holding' : '';
+  var dragAttrs = ' draggable="true"' +
+    ' ondragstart="onDragStart(event,\'' + ac.id + '\',' + h + ')"' +
+    ' ondragend="onDragEnd(event,\'' + ac.id + '\')"' +
+    ' ondragover="onDragOver(event,\'' + ac.id + '\',' + h + ')"' +
+    ' ondragleave="onDragLeave(event,\'' + ac.id + '\')"' +
+    ' ondrop="onDrop(event,\'' + ac.id + '\',' + h + ')"';
+
+  return '<div class="ac' + holdCls + '" id="card-' + ac.id + '"' + dragAttrs + '>' +
+    '<div class="ac-hd" onclick="toggleRow(\'' + ac.id + '\')">' +
+      '<div class="drag-h" title="Drag to reorder" onclick="event.stopPropagation()">⠿</div>' +
+      '<div class="ac-meta">' +
+        '<div class="ac-name" contenteditable="true" data-ph="Account name" onclick="event.stopPropagation()" spellcheck="false">' + ac.name + '</div>' +
+        '<div class="ac-seg" contenteditable="true" data-ph="Segment" onclick="event.stopPropagation()" spellcheck="false">' + ac.seg + '</div>' +
+      '</div>' +
+      nodes +
+      '<div class="ac-mom ' + MOM_CLS[ac.momentum] + '" title="Click to cycle" onclick="event.stopPropagation();cycleMom(\'' + ac.id + '\',' + h + ')">' + MOM_SYM[ac.momentum] + '</div>' +
+      '<button class="ac-xbtn" id="xbtn-' + ac.id + '" onclick="event.stopPropagation();toggleRow(\'' + ac.id + '\')">▾</button>' +
+    '</div>' +
+    (function(ac) {
+      var curTxt = 'CRL ' + ac.crl + ' · ' + (LEVEL_DESC[ac.crl] || '');
+      var tgtTxt = (ac.target !== ac.crl)
+        ? '<span class="d-sep"> · </span><span class="d-tgt">Target ' + ac.target + ' · ' + (LEVEL_DESC[ac.target] || '') + '</span>'
+        : '';
+      return '<div class="ac-desc"><span class="d-cur">' + curTxt + '</span>' + tgtTxt + '</div>';
+    })(ac) +
+    '<div class="ac-detail" id="detail-' + ac.id + '">' +
+      '<div class="detail-grid">' +
+        '<div class="dfield"><label>Bottleneck / Gap</label><div class="dval" contenteditable="true" data-ph="What is blocking progress to the next level?" spellcheck="false">' + ac.bottleneck + '</div></div>' +
+        '<div class="dfield"><label>Next verification action (buyer)</label><div class="dval" contenteditable="true" data-ph="Specific verifiable action required from the buyer" spellcheck="false">' + ac.next + '</div></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderAll() {
+  document.getElementById('active-accounts').innerHTML =
+    DATA.map(function(ac) { return renderAccount(ac, false); }).join('');
+  document.getElementById('holding-accounts').innerHTML =
+    HOLDING.map(function(ac) { return renderAccount(ac, true); }).join('');
+}
+
+function findAccount(id, isHolding) {
+  var arr = isHolding ? HOLDING : DATA;
+  for (var i = 0; i < arr.length; i++) { if (arr[i].id === id) return arr[i]; }
+  return null;
+}
+
+function setCRL(id, level, isHolding) {
+  var ac = findAccount(id, !!isHolding);
+  if (ac) { ac.crl = level; reRenderCard(ac, !!isHolding); }
+}
+
+function setTarget(id, level, isHolding) {
+  var ac = findAccount(id, !!isHolding);
+  if (ac) { ac.target = level; reRenderCard(ac, !!isHolding); }
+}
+
+function cycleMom(id, isHolding) {
+  var ac = findAccount(id, !!isHolding);
+  if (!ac) return;
+  var idx = MOM_CYCLE.indexOf(ac.momentum);
+  ac.momentum = MOM_CYCLE[(idx + 1) % 3];
+  reRenderCard(ac, !!isHolding);
+}
+
+function captureCard(id) {
+  var el = document.getElementById('card-' + id);
+  if (!el) return;
+  var ac = findAccount(id, false) || findAccount(id, true);
+  if (!ac) return;
+  var nameEl = el.querySelector('.ac-name');
+  var segEl  = el.querySelector('.ac-seg');
+  var dvals  = el.querySelectorAll('.dval');
+  if (nameEl && nameEl.innerText.trim()) ac.name       = nameEl.innerText.trim();
+  if (segEl  && segEl.innerText.trim())  ac.seg        = segEl.innerText.trim();
+  if (dvals[0]) ac.bottleneck = dvals[0].innerText.trim();
+  if (dvals[1]) ac.next       = dvals[1].innerText.trim();
+}
+
+function captureAll() {
+  DATA.concat(HOLDING).forEach(function(ac) { captureCard(ac.id); });
+}
+
+function reRenderCard(ac, isHolding) {
+  var card = document.getElementById('card-' + ac.id);
+  if (!card) return;
+  captureCard(ac.id);
+  var wasOpen = document.getElementById('detail-' + ac.id).classList.contains('open');
+  card.outerHTML = renderAccount(ac, isHolding);
+  if (wasOpen) {
+    document.getElementById('detail-' + ac.id).classList.add('open');
+    var btn = document.getElementById('xbtn-' + ac.id);
+    if (btn) btn.classList.add('open');
+  }
+}
+
+function toggleRow(id) {
+  var detail = document.getElementById('detail-' + id);
+  var btn = document.getElementById('xbtn-' + id);
+  var open = detail.classList.toggle('open');
+  if (btn) btn.classList.toggle('open', open);
+}
+
+function toggleAll() {
+  allOpen = !allOpen;
+  document.querySelectorAll('.ac-detail').forEach(function(el) { el.classList.toggle('open', allOpen); });
+  document.querySelectorAll('.ac-xbtn').forEach(function(btn) { btn.classList.toggle('open', allOpen); });
+  var b = document.getElementById('btnAll');
+  b.textContent = allOpen ? 'Collapse All' : 'Expand All';
+  b.classList.toggle('active', allOpen);
+}
+
+/* ── Export PNG ── */
+function rr(ctx, x, y, w, h, r) {
+  if (w <= 0 || h <= 0) return;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function exportPNG() {
+  var all = DATA.concat(HOLDING);
+  var W = 1400, CARD = 72, PAD = 28;
+  var H = 62 + 130 + 16 + all.length * (CARD + 6) + 48;
+  var cv = document.getElementById('cv');
+  cv.width = W; cv.height = H;
+  var ctx = cv.getContext('2d');
+
+  ctx.fillStyle = '#F0F4FA'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,W,56);
+  ctx.strokeStyle = '#D8E3F0'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0,56); ctx.lineTo(W,56); ctx.stroke();
+  ctx.fillStyle = '#0D1B2E'; ctx.font = '700 17px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('YOUR_INITIATIVE · CRL Pipeline', PAD, 34);
+  ctx.fillStyle = '#6E7F9B'; ctx.font = '400 12px system-ui';
+  ctx.fillText('KTH Customer Readiness Levels 1 to 9 · All levels shown, active accounts mapped to first commercial sale', PAD, 48);
+
+  var railY = 66, railH = 90, railW = (W - PAD*2 - 8*5) / 9;
+  var rd = [
+    { title:'CRL 1',          sub:'Hypothesis of possible needs in the market.',                                    color:'#94A3B8', lt:'#F8FAFC' },
+    { title:'CRL 2',          sub:'Identified specific needs in the market.',                                       color:'#A8B8CC', lt:'#F4F7FA' },
+    { title:'CRL 3 · Holding',sub:'First market feedback established.',                                             color:'#94A3B8', lt:'#F1F5F9' },
+    { title:'CRL 4 · Qualify',sub:'Confirmed problem/need from several customers or users.',                        color:'#D97706', lt:'#FFFBEB' },
+    { title:'CRL 5 · Engage', sub:'Established interest and relations with customers.',                             color:'#2563EB', lt:'#EFF6FF' },
+    { title:'CRL 6 · Validate',sub:'Benefits confirmed by first customer testing.',                                 color:'#059669', lt:'#ECFDF5' },
+    { title:'CRL 7 · Close',  sub:'Customers in extended testing or first test sales.',                             color:'#7C3AED', lt:'#F5F3FF' },
+    { title:'CRL 8',          sub:'First commercial sales and implemented sales process.',                          color:'#0891B2', lt:'#ECFEFF' },
+    { title:'CRL 9',          sub:'Widespread sales that scale. Large number of active users.',                     color:'#0E7490', lt:'#E0F7FA' }
+  ];
+  rd.forEach(function(r, ri) {
+    var rx = PAD + ri*(railW+5);
+    ctx.fillStyle = r.lt; rr(ctx,rx,railY,railW,railH,6); ctx.fill();
+    ctx.strokeStyle = r.color; ctx.lineWidth = 1.5; rr(ctx,rx,railY,railW,railH,6); ctx.stroke();
+    ctx.fillStyle = r.color; ctx.font = '700 9px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText(r.title, rx+8, railY+16);
+    ctx.fillStyle = '#334155'; ctx.font = '400 9px system-ui';
+    var words = r.sub.split(' '), line = '', subY = railY + 30;
+    words.forEach(function(w) {
+      var test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > railW - 16 && line) {
+        ctx.fillText(line, rx+8, subY); subY += 12; line = w;
+      } else { line = test; }
+    });
+    if (line) ctx.fillText(line, rx+8, subY);
+  });
+
+  var y = railY + railH + 18;
+  all.forEach(function(ac, i) {
+    if (i === DATA.length) { y += 8; }
+    ctx.fillStyle = '#FFFFFF'; rr(ctx,PAD,y,W-PAD*2,CARD,8); ctx.fill();
+    ctx.strokeStyle = '#D8E3F0'; ctx.lineWidth = 1; rr(ctx,PAD,y,W-PAD*2,CARD,8); ctx.stroke();
+    ctx.fillStyle = '#0D1B2E'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText(ac.name, PAD+14, y+22);
+    ctx.fillStyle = '#6E7F9B'; ctx.font = '400 11px system-ui';
+    ctx.fillText(ac.seg, PAD+14, y+36);
+    var nx = PAD + 280;
+    LEVELS.forEach(function(n) {
+      var isCur = n === ac.crl;
+      ctx.fillStyle = isCur ? LEVEL_COLORS[n] : '#E4EDF8';
+      rr(ctx,nx,y+10,26,26,13); ctx.fill();
+      ctx.fillStyle = isCur ? '#FFFFFF' : (n === ac.target ? LEVEL_COLORS[n] : '#A0B0C8');
+      ctx.font = (isCur?'700':'600') + ' 11px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(String(n), nx+13, y+27); ctx.textAlign = 'left'; nx += 32;
+    });
+    ctx.fillStyle = '#A0B0C8'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('→', nx+6, y+27); nx += 20; ctx.textAlign = 'left';
+    LEVELS.forEach(function(n) {
+      var isTgt = n === ac.target;
+      ctx.fillStyle = isTgt ? LEVEL_COLORS[n] : '#E4EDF8';
+      ctx.globalAlpha = 0.4; rr(ctx,nx,y+10,26,26,13); ctx.fill(); ctx.globalAlpha = 1;
+      if (isTgt) { ctx.strokeStyle = LEVEL_COLORS[n]; ctx.lineWidth = 2; rr(ctx,nx,y+10,26,26,13); ctx.stroke(); }
+      ctx.fillStyle = isTgt ? LEVEL_COLORS[n] : '#A0B0C8';
+      ctx.font = '600 11px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(String(n), nx+13, y+27); ctx.textAlign = 'left'; nx += 32;
+    });
+    var mc = {up:'#059669',flat:'#A0B0C8',down:'#DC2626'};
+    ctx.fillStyle = mc[ac.momentum]; ctx.font = '700 14px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(MOM_SYM[ac.momentum], W-PAD-20, y+27); ctx.textAlign = 'left';
+    y += CARD + 6;
+  });
+
+  var link = document.createElement('a');
+  link.download = 'crl-pipeline.png';
+  link.href = cv.toDataURL('image/png');
+  link.click();
+}
+
+renderAll();
+</script>
+</body>
+</html>

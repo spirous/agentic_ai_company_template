@@ -15,34 +15,49 @@ SENSE → DECIDE → CREATE → DELIVER → LEARN → (back to SENSE)
 
 Each loop has agents (capabilities), workflows (processes), and knowledge (what it produces and consumes).
 
-### The Loading Tree (how Claude reads this project)
+### Three-Tier Loading (how Claude reads this project)
+
+Token consumption is progressive: each tier loads only when a task actually needs it.
 
 ```
-CLAUDE.md                        ← Always loaded. Routing rules + communication style only.
-│
-├── PLAYBOOK.md                  ← Human reference. Loaded on demand for planning.
-│
-├── engine/deliver/agents/       ← Deliver loop agent capabilities
-│   ├── email_agent.txt
-│   ├── contact_agent.txt
-│   └── meeting_prep_agent.txt
-│
-├── engine/learn/agents/         ← Learn loop agent capabilities
-│   └── knowledge_update_agent.txt
-│
-├── shared/agents/               ← Cross-loop capabilities
-│   ├── document_agent.txt
-│   └── qa_agent.txt
-│
-└── engine/deliver/workflows/    ← Processes using those agents
-    ├── meeting-intelligence/
-    ├── email-intelligence/
-    └── contact-intelligence/
+Tier 1 · Always loaded (~1k tokens)
+  CLAUDE.md                    ← Guardrails, style, command→skill routing table. Nothing else.
+
+Tier 2 · Loaded when a command is invoked (~500 tokens per skill)
+  .claude/skills/<command>/SKILL.md
+                               ← The process: steps, inputs, outputs, and which
+                                 Tier-3 files to read at which step.
+
+Tier 3 · Loaded only at the step that needs it
+  engine/<loop>/agents/*.txt   ← Agent capabilities (reused across skills)
+  shared/agents/*.txt          ← Cross-loop agents (document, QA)
+  shared/templates/            ← Output structures
+  knowledge/contacts/<one>.md  ← One entity per read, never the whole folder
+  engine/decide/methodologies/kth-irl/initiatives/<one>.md
+  company/identity.md          ← Only for externally published output
 ```
 
-**Key principle:** Agents are capabilities (what someone knows how to do). Workflows are processes (who does what, in what order). They are always kept separate so agents can be reused across multiple workflows.
+### Folder Map
 
-**Loading rule:** Claude reads `CLAUDE.md` → finds the workflow → loads only the specific agent files needed for that task. Nothing else.
+```
+├── CLAUDE.md          Tier 1 router
+├── PLAYBOOK.md        Human reference, never auto-loaded
+├── .claude/skills/    Tier 2 — one skill per command
+├── engine/            Business loops: sense, decide, create, deliver, learn, legal
+│   └── <loop>/
+│       ├── agents/    Capability prompt files
+│       └── workflows/ Working files + outputs per workflow (archives gitignored)
+├── knowledge/         Entity-sharded: one file per contact/account
+├── shared/            Cross-cutting agents, templates, style, references
+├── company/           Identity and market facts
+└── scripts/           CLI entry points and publishing utilities
+```
+
+**Key principles:**
+- **Agents are capabilities** (what someone knows how to do). **Skills are processes** (which steps, in what order, loading what). Kept separate so agents are reused across skills.
+- **Knowledge is entity-sharded.** One file per contact, per initiative. A task loads one file, never scans a folder.
+- **Outputs are terminal.** Archives and `_processed` files never re-enter context unless explicitly requested.
+- **Growth is flat-cost.** A new workflow adds one skill folder and one routing-table row. Tier 1 size stays constant.
 
 ---
 
@@ -87,9 +102,9 @@ The user always confirms before anything is saved — nothing is written silentl
 | Term | Definition |
 | :--- | :--- |
 | **Agent** | A capability — a prompted role that knows HOW to do one thing |
-| **Skill** | A packaged, invocable agent (in Claude Code: a slash command) |
+| **Skill** | An invocable process manifest (Claude Code native, lazy-loaded from `.claude/skills/`) |
 | **Tool** | A function interface (API call, file I/O, shell command) |
-| **Workflow** | Orchestrates agents + tools in a defined process |
+| **Workflow** | Working directory for a process: inputs, outputs, templates |
 | **Knowledge Base** | Stored information agents can retrieve |
 
 ---
@@ -104,6 +119,7 @@ The user always confirms before anything is saved — nothing is written silentl
 | Meeting Prep Agent | `engine/deliver/agents/meeting_prep_agent.txt` | Past notes + context → meeting brief | `meet-prep` |
 | Knowledge Update Agent | `engine/learn/agents/knowledge_update_agent.txt` | Notes/email → contact file update | All pipelines |
 | QA Agent | `shared/agents/qa_agent.txt` | Output quality review | In development |
+| CRL Pipeline Agent | `engine/deliver/agents/crl_pipeline_agent.txt` | KTH CRL assessment, bottleneck analysis, next action writing for prospect accounts | `crl-pipeline` |
 
 ---
 
@@ -117,6 +133,7 @@ The user always confirms before anything is saved — nothing is written silentl
 | `meet-prep` | ✅ Active | Company name | Brief → Apple Notes | `meet-prep` |
 | `loan-agreements` | ✅ Active | Company + equipment + signatory fields | Filled .docx (local) + Confluence tracking page + email draft via Ollama | `fill-loan` |
 | `irl-decision` | ✅ Active | Initiative name + guided interview | IRL profile `.md` + assessment table + dimension action plans | `irl-new`, `irl-assess`, `irl-advance`, `irl-review` |
+| `crl-pipeline` | ✅ Active | Contact files + meeting notes | Structured CRL assessment per account + dashboard update + contact file Pipeline Status | `crl-pipeline`, `crl-update` |
 
 ---
 
@@ -175,6 +192,14 @@ irl-assess "Initiative Name"                       # assessment table, risk flag
 irl-advance "Initiative Name" DIM                  # action plan + draft artifact for next level
 irl-review                                         # portfolio matrix, stalled items, top priorities
 
+# ── CRL Pipeline ─────────────────────────────────────────────────────────────
+# In Claude Code:
+crl-pipeline "YOUR_INITIATIVE"                     # full review: read contact files, assess all accounts, propose updates
+crl-update "account-codename" --crl 5             # advance a single account with evidence
+crl-update "account-codename" --bottleneck "text" # update bottleneck only
+# Dashboard (open in browser):
+open engine/create/workflows/company-presentation/crl-pipeline.html
+
 # ── Cron ────────────────────────────────────────────────────────────────────
 zsh scripts/setup-cron.sh                          # install Monday 08:00 cron
 zsh scripts/setup-cron.sh --remove                 # remove cron job
@@ -184,14 +209,16 @@ zsh scripts/setup-cron.sh --remove                 # remove cron job
 
 ## Conventions for Adding New Workflows
 
-1. **Add agents first** — create `engine/<loop>/agents/<role>_agent.txt`
-2. **Create a workflow folder** — `engine/<loop>/workflows/<name>/`
-3. **Write a manifest** — `workflow.md` listing agents, pipeline steps, defaults
-4. **Add a template** — `templates/` for the output structure
-5. **Register the trigger** in `CLAUDE.md`
-6. **Add a CLI command** in `scripts/` if it needs a terminal entry point
-7. **Update this file** — add a row to Agent Roster and Workflow Map
-8. **Register the path** in `scripts/config.py`
+1. **Pick the engine loop** — sense, decide, create, deliver, learn, or legal
+2. **Add agents first** — create `engine/<loop>/agents/<role>_agent.txt`; reuse existing agents where possible
+3. **Create a workflow folder** — `engine/<loop>/workflows/<name>/`
+4. **Write a manifest** — `workflow.md` listing agents, pipeline steps, defaults
+5. **Add a template** — `templates/` for the output structure
+6. **Create the skill** — `.claude/skills/<command>/SKILL.md` with frontmatter (name, description with trigger phrases) and numbered steps that say exactly which file to read at which step
+7. **Add one row** to the Commands → Skills table in `CLAUDE.md`
+8. **Add a CLI command** in `scripts/` if it needs a terminal entry point
+9. **Update this file** — add a row to Agent Roster and Workflow Map
+10. **Register the path** in `scripts/config.py`
 
 **Naming rules:**
 - Folders: `kebab-case`
