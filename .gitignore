@@ -7,3 +7,7 @@ __pycache__/
 engine/legal/workflows/loan-agreements/templates/
 engine/legal/workflows/loan-agreements/active/
 engine/legal/workflows/loan-agreements/archive/
+
+# People — 1-on-1 notes about colleagues never leave the laptop (template stays)
+knowledge/people/*
+!knowledge/people/_template.md
