@@ -92,6 +92,7 @@ The user always confirms before anything is saved — nothing is written silentl
 | Email drafts | Local file on Desktop | Personal only | Operational, half-finished, never for sharing |
 | Pricing / deal terms | CRM only | Sales team | Never in this workspace |
 | NDA status | Personal knowledge only | — | Company-visible wiki; NDA existence is sensitive |
+| Person files (`knowledge/people/`) | Local only — never Confluence, never emails | Personal only | 1-on-1 notes about colleagues are more sensitive than customer notes |
 
 **The rule in one sentence:** Confluence = company knowledge; local = personal operations.
 
