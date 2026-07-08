@@ -15,6 +15,7 @@ description: KTH CRL pipeline assessment and account updates. Use for crl-pipeli
 
 ## Rules
 
+- **Channel vs demand:** CRL levels are assessed for channel accounts (the companies that can issue you a purchase order — files with a `## Pipeline Status` block) only. End users (files with a `## Demand Signal` block) are never given CRL rows; read them as evidence for initiative-level CRL and for the linked channel account's assessment
 - Never assign a CRL level without citing a specific observable fact from notes or the contact file
 - Propose contact file updates after every review — user confirms before saving
 - After `push-notes` completes for any initiative account: check if the meeting content warrants a CRL level change and add a one-sentence CRL check note at the end of the output
