@@ -7,7 +7,7 @@ description: KTH CRL pipeline assessment and account updates. Use for crl-pipeli
 
 ## Steps
 
-1. Read `./engine/deliver/agents/crl_pipeline_agent.txt`
+1. Read `./agents/crl_pipeline_agent.txt`
 2. Read relevant contact files in `./knowledge/contacts/` — look for `## Pipeline Status` sections
 3. For `crl-pipeline "Initiative"`: assess all accounts linked to the initiative against CRL 3–7 criteria, output structured account review, propose updated Pipeline Status blocks and HTML dashboard DATA/HOLDING arrays
 4. For `crl-update "Company" --crl [n]`: assess the single account, output updated CRL block, propose contact file Pipeline Status update

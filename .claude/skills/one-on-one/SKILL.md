@@ -9,7 +9,7 @@ Person files live in `knowledge/people/`, one per colleague/stakeholder. **Local
 
 ## Steps
 
-1. Read `./engine/deliver/agents/one_on_one_agent.txt`
+1. Read `./agents/one_on_one_agent.txt`
 2. Route by invocation:
    - `one-on-one "Name"` → read `knowledge/people/[slugified-name].md`, run PREP mode
    - `one-on-one "Name" --log` → read the person file, take the user's rough notes, run LOG mode, propose the updated file, save only after confirmation

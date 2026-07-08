@@ -41,7 +41,7 @@ Optional:
   COMPANY_SIGNING_CITY       Your company's city for the signing block (default: "[YOUR CITY]")
 
 Output:
-  engine/legal/workflows/loan-agreements/active/YYYYMMDD_Loan_Agreement_Product_YourCompany-Borrower.docx
+  work/loan-agreements/active/YYYYMMDD_Loan_Agreement_Product_YourCompany-Borrower.docx
 """
 
 import os

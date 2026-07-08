@@ -44,7 +44,7 @@ Push raw meeting notes through AI and publish to Confluence.
 | `push-notes <file> --local` | Same, via local Ollama |
 
 ```zsh
-push-notes engine/deliver/workflows/meeting-intelligence/archive/2026/2026-06-18_acme_raw.md
+push-notes work/meeting-intelligence/archive/2026/2026-06-18_acme_raw.md
 push-notes ~/Desktop/my_meeting.md --to YOUR_SPACE/'Acme Corp - Meeting Notes'
 push-notes ~/Desktop/my_meeting.md --local
 ```

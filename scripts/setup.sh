@@ -49,5 +49,5 @@ fi
 
 echo ""
 echo "=== Setup complete ==="
-echo "Next: fill in company/identity.md and shared/style/style.md"
+echo "Next: fill in company/identity.md and company/style/style.md"
 echo ""

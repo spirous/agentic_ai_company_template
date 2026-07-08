@@ -4,7 +4,7 @@
 [One sentence: what does this company exist to do?]
 
 ## Brand voice
-See `shared/style/style.md` for writing standards and email tone guide.
+See `company/style/style.md` for writing standards and email tone guide.
 
 ## Values
 [3–5 values that shape how this company operates and communicates]

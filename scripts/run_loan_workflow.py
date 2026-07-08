@@ -11,7 +11,7 @@ Usage:
   python3 scripts/run_loan_workflow.py \\
     --company "Institute Name" \\
     --type standard \\
-    --fields engine/legal/workflows/loan-agreements/active/fields_institute.json \\
+    --fields work/loan-agreements/active/fields_institute.json \\
     --recipient "First Last" \\
     --recipient-email contact@institute.org
 

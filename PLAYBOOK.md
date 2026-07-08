@@ -29,11 +29,11 @@ Tier 2 · Loaded when a command is invoked (~500 tokens per skill)
                                  Tier-3 files to read at which step.
 
 Tier 3 · Loaded only at the step that needs it
-  engine/<loop>/agents/*.txt   ← Agent capabilities (reused across skills)
-  shared/agents/*.txt          ← Cross-loop agents (document, QA)
-  shared/templates/            ← Output structures
+  agents/*.txt                 ← Agent capabilities, flat (reused across skills)
+  methodologies/<name>/        ← Distilled frameworks (kth-irl, mom-test)
+  work/meeting-intelligence/templates/            ← Output structures
   knowledge/contacts/<one>.md  ← One entity per read, never the whole folder
-  engine/decide/methodologies/kth-irl/initiatives/<one>.md
+  knowledge/initiatives/<one>.md
   company/identity.md          ← Only for externally published output
 ```
 
@@ -44,13 +44,11 @@ Tier 3 · Loaded only at the step that needs it
 ├── PLAYBOOK.md        Human reference, never auto-loaded
 ├── dashboards/        ← YOU: all interactive HTML boards, one place
 ├── knowledge/         ← YOU: contacts, people, opportunities (your data)
-├── shared/references/ ← YOU: drop PDFs and books here
+├── references/ ← YOU: drop PDFs and books here
 ├── .claude/skills/    Tier 2 — one skill per command (machinery)
-├── engine/            Business loops: sense, decide, create, deliver, learn, legal (machinery)
-│   └── <loop>/
-│       ├── agents/    Capability prompt files
-│       └── workflows/ Working files + outputs per workflow (archives gitignored)
-├── shared/            Cross-cutting agents, templates, style (machinery)
+├── agents/            All agent prompt files, flat (machinery)
+├── methodologies/     Distilled frameworks: kth-irl/, mom-test/ (machinery)
+├── work/              Per-workflow outputs, templates, archives (machinery; archives gitignored)
 ├── company/           Identity and market facts (machinery)
 └── scripts/           CLI entry points — reached via shell aliases, not by browsing
 ```
@@ -81,7 +79,7 @@ The user always confirms before anything is saved — nothing is written silentl
 
 **What is never extracted:** pricing, deal terms, NDA details, anything marked CONFIDENTIAL or SENSITIVE, personal data unrelated to the professional relationship.
 
-**Agent:** `engine/learn/agents/knowledge_update_agent.txt`
+**Agent:** `agents/knowledge_update_agent.txt`
 **Utility:** `scripts/knowledge_utils.py` — shared across all pipelines
 
 ---
@@ -118,13 +116,13 @@ The user always confirms before anything is saved — nothing is written silentl
 
 | Agent | File | Role | Used by |
 | :--- | :--- | :--- | :--- |
-| Document Agent | `shared/agents/document_agent.txt` | Raw notes → structured Confluence XHTML | `meeting-intelligence` |
-| Contact Agent | `engine/deliver/agents/contact_agent.txt` | CI page → follow-up email draft | `contact-intelligence` |
-| Email Agent | `engine/deliver/agents/email_agent.txt` | Clipboard / description → email draft | `email-intelligence` |
-| Meeting Prep Agent | `engine/deliver/agents/meeting_prep_agent.txt` | Past notes + context → meeting brief | `meet-prep` |
-| Knowledge Update Agent | `engine/learn/agents/knowledge_update_agent.txt` | Notes/email → contact file update | All pipelines |
-| QA Agent | `shared/agents/qa_agent.txt` | Output quality review | In development |
-| CRL Pipeline Agent | `engine/deliver/agents/crl_pipeline_agent.txt` | KTH CRL assessment, bottleneck analysis, next action writing for prospect accounts | `crl-pipeline` |
+| Document Agent | `agents/document_agent.txt` | Raw notes → structured Confluence XHTML | `meeting-intelligence` |
+| Contact Agent | `agents/contact_agent.txt` | CI page → follow-up email draft | `contact-intelligence` |
+| Email Agent | `agents/email_agent.txt` | Clipboard / description → email draft | `email-intelligence` |
+| Meeting Prep Agent | `agents/meeting_prep_agent.txt` | Past notes + context → meeting brief | `meet-prep` |
+| Knowledge Update Agent | `agents/knowledge_update_agent.txt` | Notes/email → contact file update | All pipelines |
+| QA Agent | `agents/qa_agent.txt` | Output quality review | In development |
+| CRL Pipeline Agent | `agents/crl_pipeline_agent.txt` | KTH CRL assessment, bottleneck analysis, next action writing for prospect accounts | `crl-pipeline` |
 
 ---
 
@@ -185,7 +183,7 @@ add-contact-note --list                            # show all contact files
 
 # ── Legal — Loan Agreements ─────────────────────────────────────────────────
 # Terminal command — runs entirely locally (Word fill + Confluence page + Ollama email):
-fill-loan --company "Institute" --type standard --fields engine/legal/workflows/loan-agreements/active/fields_COMPANY.json --recipient "First Last" --recipient-email contact@institute.org
+fill-loan --company "Institute" --type standard --fields work/loan-agreements/active/fields_COMPANY.json --recipient "First Last" --recipient-email contact@institute.org
 fill-loan ... --type ds                            # your company handles shipping both ways
 fill-loan ... --skip-confluence                    # renewal — page already exists
 fill-loan ... --dry-run                            # preview Confluence page without creating
@@ -215,8 +213,8 @@ zsh scripts/setup-cron.sh --remove                 # remove cron job
 ## Conventions for Adding New Workflows
 
 1. **Pick the engine loop** — sense, decide, create, deliver, learn, or legal
-2. **Add agents first** — create `engine/<loop>/agents/<role>_agent.txt`; reuse existing agents where possible
-3. **Create a workflow folder** — `engine/<loop>/workflows/<name>/`
+2. **Add agents first** — create `agents/<role>_agent.txt`; note the loop it serves in the file header; reuse existing agents where possible
+3. **Create a workflow folder** — `work/<name>/`
 4. **Write a manifest** — `workflow.md` listing agents, pipeline steps, defaults
 5. **Add a template** — `templates/` for the output structure
 6. **Create the skill** — `.claude/skills/<command>/SKILL.md` with frontmatter (name, description with trigger phrases) and numbered steps that say exactly which file to read at which step
@@ -230,4 +228,4 @@ zsh scripts/setup-cron.sh --remove                 # remove cron job
 - Agent files: `<role>_agent.txt`
 - Raw input: `YYYY-MM-DD_<topic>_raw.md`
 - Processed output: `YYYY-MM-DD_<topic>_processed.md`
-- Archive: `engine/<loop>/workflows/<name>/archive/<year>/`
+- Archive: `work/<name>/archive/<year>/`

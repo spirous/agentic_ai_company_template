@@ -95,7 +95,7 @@ def run(company, model, context, fetch_only):
         user_content += f"\n\nAdditional context: {context}"
 
     if fetch_only:
-        print(f"Read the agent rules in engine/deliver/agents/contact_agent.txt, then draft a follow-up email "
+        print(f"Read the agent rules in agents/contact_agent.txt, then draft a follow-up email "
               f"for the following Contact Intelligence page.\n\n"
               f"Source: {ci_url}\n\n{ci_text}")
         if context:

@@ -50,7 +50,7 @@ This writes your `.env`, updates `company/identity.md`, and optionally adds `scr
 
 Edit `company/identity.md` with your company's mission, voice, and values.
 
-Edit `shared/style/style.md` to define your email tone and writing conventions.
+Edit `company/style/style.md` to define your email tone and writing conventions.
 
 ## Command reference
 
@@ -69,34 +69,31 @@ Full documentation: `PLAYBOOK.md`
 ## Folder structure
 
 ```
-├── company/          ← who this company is (identity, org map)
-├── engine/
-│   ├── sense/        ← market intel (scaffold — build for your context)
-│   ├── decide/       ← strategy, methodologies (scaffold)
-│   ├── create/       ← products, content (scaffold)
-│   ├── deliver/      ← comms, publishing, sales (fully wired)
-│   └── learn/        ← knowledge updates (fully wired)
-├── shared/           ← cross-loop: document agent, QA agent, style guide
-├── knowledge/        ← company memory: contacts
-└── scripts/          ← all CLI tools
+├── dashboards/       ← YOU: all interactive HTML boards
+├── knowledge/        ← YOU: contacts, people, opportunities, initiatives
+├── references/       ← YOU: drop PDFs and books here
+├── .claude/skills/   ← one skill per command (machinery)
+├── agents/           ← all agent prompt files, flat (machinery)
+├── methodologies/    ← distilled frameworks: kth-irl, mom-test (machinery)
+├── work/             ← per-workflow outputs, templates, archives (machinery)
+├── company/          ← identity, brand voice, email style (machinery)
+└── scripts/          ← all CLI tools (reached via shell aliases)
 ```
 
 ## Instantiating for a new company
 
 1. Run `bash scripts/setup.sh`
-2. Fill in `company/identity.md` and `shared/style/style.md`
+2. Fill in `company/identity.md` and `company/style/style.md`
 3. Add your first contact: `add-contact-note "Acme Corp" "Initial meeting"`
 4. Push first notes: `push-notes path/to/notes.md`
 
-## Extending to other loops
+## Adding a new capability
 
-Each unpopulated loop (sense, decide, create) follows the same pattern:
-
-1. Write a role definition in `engine/<loop>/roles/`
-2. Write an agent prompt in `engine/<loop>/agents/`
-3. Write a workflow in `engine/<loop>/workflows/`
-4. Register the path in `scripts/config.py`
-5. Add the command to `COMMANDS.md` and `PLAYBOOK.md`
+1. Write an agent prompt in `agents/` (note which business loop it serves in the file header)
+2. Create a workflow folder in `work/<name>/` for its outputs and templates
+3. Create a skill in `.claude/skills/<command>/SKILL.md`
+4. Register the path in `scripts/config.py` if scripts need it
+5. Add one row to the routing table in `CLAUDE.md` and update `PLAYBOOK.md`
 
 ## License
 

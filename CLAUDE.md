@@ -22,7 +22,7 @@ These apply to ALL output: responses, emails, documents, summaries.
 Load context progressively, never all at once:
 1. **Tier 1 (this file):** guardrails, style, routing. Always loaded.
 2. **Tier 2 (skills):** each command is a skill in `.claude/skills/`. Its SKILL.md loads only when invoked and lists exactly which files to read at which step.
-3. **Tier 3 (resources):** agent prompts in `engine/*/agents/` and `shared/agents/`, templates, contact files, initiative profiles. Loaded only at the step that needs them, one entity at a time.
+3. **Tier 3 (resources):** agent prompts in `agents/`, methodologies, templates, contact files, initiative profiles. Loaded only at the step that needs them, one entity at a time.
 
 Never load archive files or processed outputs unless explicitly asked. Never scan `knowledge/contacts/` — load the one file the task needs.
 
