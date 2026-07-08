@@ -40,6 +40,7 @@ Never load archive files or processed outputs unless explicitly asked. Never sca
 | `irl-advance "Initiative" DIM` | irl-advance | Dimension agent → action plan + draft artifact |
 | `irl-review` | irl-review | All profiles → portfolio matrix, priorities |
 | `crl-pipeline "Initiative"` / `crl-update "Company"` | crl-pipeline | Contact files → account CRL assessment + dashboard update |
+| `discovery-prep "Account"` / `discovery-debrief` / `discovery-verdict "Initiative"` | discovery | Mom Test question sets, evidence classification, real-business verdict |
 | `one-on-one "Name"` [`--log`, `--new`, `--list`] | one-on-one | Internal stakeholder prep brief + note capture (local only) |
 | `weekly-review` | weekly-review | Monday cockpit: pipeline, overdue items, commitments, top 3 |
 
