@@ -15,4 +15,4 @@ description: Prepare the company presentation for an initiative. Use when asked 
 6. Ask only for: presentation slot length (if not in the command), thank-you names
 7. Generate 12-slide presenter script following the agent's story arc
 8. Save brief as `./engine/create/workflows/company-presentation/brief_[PERIOD].md`
-9. Remind user to update the `DEFAULTS` array in `irl-readiness.html` and screenshot the chart for Slide 5
+9. Remind user to update the `DEFAULTS` array in `dashboards/irl-readiness.html` and screenshot the chart for Slide 5

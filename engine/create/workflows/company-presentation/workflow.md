@@ -31,18 +31,18 @@ Optional flags:
 4. Read prior presentation summary if available
 5. Generate 12-slide presenter script following the agent's story arc
 6. Save brief as `engine/create/workflows/company-presentation/brief_[PERIOD].md`
-7. Render IRL chart: open `engine/create/workflows/company-presentation/irl-readiness.html` — update dimension values in the JS `DEFAULTS` array to match current profile scores
+7. Render IRL chart: open `dashboards/irl-readiness.html` — update dimension values in the JS `DEFAULTS` array to match current profile scores
 
 ## Outputs
 
 | Output | Path |
 |:---|:---|
 | Presenter script | `engine/create/workflows/company-presentation/brief_[PERIOD].md` |
-| IRL readiness chart | `engine/create/workflows/company-presentation/irl-readiness.html` |
+| IRL readiness chart | `dashboards/irl-readiness.html` |
 
 ## IRL chart update
 
-Before each presentation, update the `DEFAULTS` array in `irl-readiness.html`:
+Before each presentation, update the `DEFAULTS` array in `dashboards/irl-readiness.html`:
 
 ```js
 var DEFAULTS = [

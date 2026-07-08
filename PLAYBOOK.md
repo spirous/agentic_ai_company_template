@@ -42,16 +42,20 @@ Tier 3 · Loaded only at the step that needs it
 ```
 ├── CLAUDE.md          Tier 1 router
 ├── PLAYBOOK.md        Human reference, never auto-loaded
-├── .claude/skills/    Tier 2 — one skill per command
-├── engine/            Business loops: sense, decide, create, deliver, learn, legal
+├── dashboards/        ← YOU: all interactive HTML boards, one place
+├── knowledge/         ← YOU: contacts, people, opportunities (your data)
+├── shared/references/ ← YOU: drop PDFs and books here
+├── .claude/skills/    Tier 2 — one skill per command (machinery)
+├── engine/            Business loops: sense, decide, create, deliver, learn, legal (machinery)
 │   └── <loop>/
 │       ├── agents/    Capability prompt files
 │       └── workflows/ Working files + outputs per workflow (archives gitignored)
-├── knowledge/         Entity-sharded: one file per contact/account
-├── shared/            Cross-cutting agents, templates, style, references
-├── company/           Identity and market facts
-└── scripts/           CLI entry points and publishing utilities
+├── shared/            Cross-cutting agents, templates, style (machinery)
+├── company/           Identity and market facts (machinery)
+└── scripts/           CLI entry points — reached via shell aliases, not by browsing
 ```
+
+**Human navigation rule:** you only ever touch the folders marked YOU. Everything else is machinery that skills and scripts navigate for you.
 
 **Key principles:**
 - **Agents are capabilities** (what someone knows how to do). **Skills are processes** (which steps, in what order, loading what). Kept separate so agents are reused across skills.
@@ -199,7 +203,7 @@ crl-pipeline "YOUR_INITIATIVE"                     # full review: read contact f
 crl-update "account-codename" --crl 5             # advance a single account with evidence
 crl-update "account-codename" --bottleneck "text" # update bottleneck only
 # Dashboard (open in browser):
-open engine/create/workflows/company-presentation/crl-pipeline.html
+open dashboards/crl-pipeline.html
 
 # ── Cron ────────────────────────────────────────────────────────────────────
 zsh scripts/setup-cron.sh                          # install Monday 08:00 cron

@@ -33,7 +33,7 @@ One paragraph. Answer the question. Lead with the most important development sin
 One paragraph. Describe the breadth of current engagement: how many partners, what types, which geographies. Do not list every account. Give the audience a sense of scale and coverage. A visual (map or grid) belongs here.
 
 ### Slide 5 — IRL readiness snapshot
-One paragraph introducing the IRL chart. Explain it in one sentence for a non-expert audience. Name the strong dimensions and the gap to address. The chart (irl-readiness.html) is the visual for this slide.
+One paragraph introducing the IRL chart. Explain it in one sentence for a non-expert audience. Name the strong dimensions and the gap to address. The chart (dashboards/irl-readiness.html) is the visual for this slide.
 
 ### Slide 6 — Technical progress
 One paragraph. What was built, tested, or qualified since the last update. Name who on the team drove it. Be specific — model numbers, test conditions, outcomes.

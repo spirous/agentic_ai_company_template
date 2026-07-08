@@ -87,7 +87,7 @@ Evidence for level: [one sentence citing specific observable fact]
 Return all accounts in the format above, sorted by CRL descending, then by momentum (up before flat before down). After the structured output, add a one-paragraph summary: where the pipeline is strongest, where the key risk is, and the single most important action for the team this month.
 
 ### For HTML dashboard refresh:
-Return the updated DATA and HOLDING arrays as valid JavaScript — ready to paste into crl-pipeline.html to replace the existing arrays. DATA = accounts at CRL 4+, HOLDING = accounts at CRL 3.
+Return the updated DATA and HOLDING arrays as valid JavaScript — ready to paste into dashboards/crl-pipeline.html to replace the existing arrays. DATA = accounts at CRL 4+, HOLDING = accounts at CRL 3.
 
 ### For contact file update:
 Propose a `## Pipeline Status` block in this format:

@@ -13,7 +13,7 @@ Track individual prospect accounts on the KTH CRL 3–7 continuum from first con
 | Contact files | `knowledge/contacts/*.md` | Relationship history, org chart, prior meetings, Pipeline Status sections |
 | Meeting notes archive | `workflows/meeting-intelligence/archive/` | Recent processed notes — loaded on demand |
 | Initiative profile | `engine/decide/methodologies/kth-irl/initiatives/[initiative].md` | Overall CRL score and dimension context |
-| HTML dashboard | `engine/create/workflows/company-presentation/crl-pipeline.html` | Interactive pipeline view (open in browser) |
+| HTML dashboard | `dashboards/crl-pipeline.html` | Interactive pipeline view (open in browser) |
 
 ## Commands
 
@@ -59,6 +59,6 @@ Each contact file relevant to a tracked initiative should end with a `## Pipelin
 
 ## File conventions
 
-- Dashboard: `engine/create/workflows/company-presentation/crl-pipeline.html`
+- Dashboard: `dashboards/crl-pipeline.html`
 - Archive snapshots: `engine/deliver/workflows/crl-pipeline/archive/YYYY-MM-DD_[initiative-slug].md`
 - Contact file updates: append or update `## Pipeline Status` at the end of the relevant contact file
