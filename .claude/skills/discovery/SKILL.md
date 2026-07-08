@@ -7,8 +7,8 @@ description: Mom Test customer discovery. Use for discovery-prep "Account/topic"
 
 ## Steps
 
-1. Read `./agents/discovery_agent.txt`
-2. Read `./methodologies/mom-test/principles.md` (the distilled methodology — never read the full book PDF)
+1. Read `agents/discovery_agent.txt`
+2. Read `methodologies/mom-test/principles.md` (the distilled methodology — never read the full book PDF)
 3. Route by invocation:
    - `discovery-prep "Account"` → read that account's contact file (`## Demand Signal` block), run PREP mode
    - `discovery-prep "topic"` → run PREP mode on the described topic, no file needed

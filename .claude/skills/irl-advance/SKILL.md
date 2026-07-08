@@ -7,7 +7,7 @@ description: Build an action plan to advance one IRL dimension of an initiative.
 
 ## Steps
 
-1. Read `./agents/irl_orchestrator.txt`
-2. Read `./methodologies/kth-irl/agents/[dimension]_agent.txt`
+1. Read `agents/irl_orchestrator.txt`
+2. Read `methodologies/kth-irl/agents/[dimension]_agent.txt`
 3. Read the initiative profile `.md`
 4. Output: current state, gap, next actions, draft artifact, effort estimate

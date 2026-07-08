@@ -4,9 +4,18 @@ __pycache__/
 .DS_Store
 
 # Legal — loan agreement templates and filled documents never leave the laptop
-engine/legal/workflows/loan-agreements/templates/
-engine/legal/workflows/loan-agreements/active/
-engine/legal/workflows/loan-agreements/archive/
+work/loan-agreements/templates/*
+work/loan-agreements/active/*
+work/loan-agreements/archive/*
+!work/loan-agreements/*/.gitkeep
+
+# Customer data — contact files, meeting/contact archives, initiative profiles
+knowledge/contacts/*
+!knowledge/contacts/.gitkeep
+knowledge/initiatives/*.md
+!knowledge/initiatives/_template.md
+work/meeting-intelligence/archive/
+work/contact-intelligence/archive/
 
 # People — 1-on-1 notes about colleagues never leave the laptop (template stays)
 knowledge/people/*

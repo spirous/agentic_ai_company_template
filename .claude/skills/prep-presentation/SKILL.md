@@ -7,10 +7,10 @@ description: Prepare the company presentation for an initiative. Use when asked 
 
 ## Steps
 
-1. Read `./agents/company_presentation_agent.txt`
+1. Read `agents/company_presentation_agent.txt`
 2. Read the initiative profile in `./knowledge/initiatives/`
 3. Read relevant contact files in `./knowledge/contacts/` (all accounts mentioned in the initiative profile)
-4. Read `./company/identity.md`
+4. Read `company/identity.md`
 5. Read the prior brief if provided (`--last-brief` flag) or the most recent `brief_*.md` in `./work/company-presentation/`
 6. Ask only for: presentation slot length (if not in the command), thank-you names
 7. Generate 12-slide presenter script following the agent's story arc

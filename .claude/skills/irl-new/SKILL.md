@@ -7,8 +7,8 @@ description: Create a new KTH IRL initiative profile via guided interview. Use w
 
 ## Steps
 
-1. Read `./agents/irl_orchestrator.txt`
-2. Read `./methodologies/kth-irl/agents/irl_interview_agent.txt`
+1. Read `agents/irl_orchestrator.txt`
+2. Read `methodologies/kth-irl/agents/irl_interview_agent.txt`
 3. Check if `./knowledge/initiatives/[slugified-name].md` exists — if so, offer to update
 4. Run the guided interview — ask one question at a time, fill template incrementally
 5. Save to `./knowledge/initiatives/[slugified-name].md`
