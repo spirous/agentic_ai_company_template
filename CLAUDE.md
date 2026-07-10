@@ -30,7 +30,7 @@ Never load archive files or processed outputs unless explicitly asked. Never sca
 | Command | Skill | What it does |
 | :--- | :--- | :--- |
 | `push-notes <file>` | push-notes | Notes → AI transform → Confluence |
-| `follow-up "Company"` | follow-up | CI page → follow-up email draft |
+| `follow-up "Account"` | follow-up | Local contact file + debrief → email draft in chat |
 | `onboard-prospect "Co" --country C --sector S` | onboard-prospect | New prospect → Confluence hierarchy |
 | `log-meeting "Co" --space S --parent 'Parent'` | log-meeting | Apple Note → Confluence → CI page → email draft |
 | `fill-loan "Company" --type [standard\|ds]` | fill-loan | Field collection → loan agreement package |
@@ -43,6 +43,7 @@ Never load archive files or processed outputs unless explicitly asked. Never sca
 | `discovery-prep "Account"` / `discovery-debrief` / `discovery-verdict "Initiative"` | discovery | Mom Test question sets, evidence classification, real-business verdict |
 | `one-on-one "Name"` [`--log`, `--new`, `--list`] | one-on-one | Internal stakeholder prep brief + note capture (local only) |
 | `weekly-review` | weekly-review | Monday cockpit: pipeline, overdue items, commitments, top 3 |
+| `cost-roadmap "Product"` | cost-optimization | BOM + process → phased cost-down roadmap for a derivative product |
 
 Terminal-only commands (`new-contact`, `review-contacts`, `draft-email`): see `PLAYBOOK.md`.
 

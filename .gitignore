@@ -20,3 +20,18 @@ work/contact-intelligence/archive/
 # People — 1-on-1 notes about colleagues never leave the laptop (template stays)
 knowledge/people/*
 !knowledge/people/_template.md
+
+# IP strategy — asset inventories and disclosure audits never leave the laptop
+work/ip/
+
+# Cost optimization — cost models and roadmaps are commercially sensitive
+work/cost-optimization/*
+!work/cost-optimization/.gitkeep
+
+# Customer discovery — preps and debriefs carry customer specifics
+work/customer-discovery/preps/
+work/customer-discovery/debriefs/
+
+# Lead-time planner — the tool and the example are versioned; real product models stay local
+work/lead-time-planner/products/*
+!work/lead-time-planner/products/example-hardware-unit.json

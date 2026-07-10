@@ -131,12 +131,15 @@ The user always confirms before anything is saved — nothing is written silentl
 | Workflow | Status | Input | Output | Command |
 | :--- | :--- | :--- | :--- | :--- |
 | `meeting-intelligence` | ✅ Active | Raw meeting notes `.md` | Confluence protocol page | `push-notes` |
-| `contact-intelligence` | ✅ Active | Confluence CI page | Dashboard (Confluence) + email drafts (local) | `follow-up`, `review-contacts` |
+| `contact-intelligence` | ✅ Active | Local contact file + latest debrief | Email draft in chat (follow-up); dashboard + local drafts via weekly-review scripts | `follow-up`, `review-contacts` |
 | `email-intelligence` | ✅ Active | Clipboard / description | Interactive draft → clipboard | `draft-email` |
 | `meet-prep` | ✅ Active | Company name | Brief → Apple Notes | `meet-prep` |
 | `loan-agreements` | ✅ Active | Company + equipment + signatory fields | Filled .docx (local) + Confluence tracking page + email draft via Ollama | `fill-loan` |
 | `irl-decision` | ✅ Active | Initiative name + guided interview | IRL profile `.md` + assessment table + dimension action plans | `irl-new`, `irl-assess`, `irl-advance`, `irl-review` |
 | `crl-pipeline` | ✅ Active | Contact files + meeting notes | Structured CRL assessment per account + dashboard update + contact file Pipeline Status | `crl-pipeline`, `crl-update` |
+| `ip` (work/ip/) | 🟡 Working folder | IPRL advancement plans | IP asset inventories and disclosure audits per initiative — local only, curated export goes to attorney | `irl-advance [Init] IPRL` |
+| `cost-optimization` | ✅ Active | Product BOM + process steps + volume forecast | Phased cost-down roadmap (transparency → quick wins → design-to-cost → scale) | `cost-roadmap` |
+| `lead-time-planner` | 🛠 Tool | Parts (lead/stock/date) + production steps | Interactive Gantt + customer lead time + order-by dates (`work/lead-time-planner/`) | open the HTML |
 
 ---
 

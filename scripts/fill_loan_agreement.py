@@ -128,8 +128,6 @@ def fill_document(doc, f):
 
     # Your company contact (single-tab row)
     p = _find_para(doc, '- at [YOUR COMPANY]:')
-    if not p:
-        p = _find_para(doc, '- at DECTRIS:')  # fallback for adapted templates
     if p:
         p.runs[-1].text = '\t' + f['COMPANY_CONTACT']
     else:

@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead Time Planner</title>
+<style>
+  :root{
+    --ground:#E8ECEF;
+    --paper:#F6F8F9;
+    --ink:#17242E;
+    --muted:#5C6B76;
+    --line:#B9C4CC;
+    --accent:#D8480F;
+    --teal:#2F6B7E;
+    --prod:#274B63;
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--ground);}
+  body{
+    margin:0;
+    padding:28px 20px 60px;
+    font-family:"Avenir Next","Helvetica Neue",-apple-system,BlinkMacSystemFont,sans-serif;
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.45;
+  }
+  .sheet{
+    max-width:1180px;
+    margin:0 auto;
+    background:var(--paper);
+    border:2px solid var(--ink);
+    box-shadow:6px 6px 0 rgba(23,36,46,.12);
+  }
+
+  /* ---------- title block ---------- */
+  .titleblock{
+    display:grid;
+    grid-template-columns:1fr auto auto auto;
+    border-bottom:2px solid var(--ink);
+  }
+  .tb-cell{
+    padding:14px 18px 12px;
+    border-left:1px solid var(--ink);
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    gap:2px;
+  }
+  .tb-cell:first-child{border-left:none;}
+  .eyebrow{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  h1{
+    margin:0;
+    font-family:"Avenir Next Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+    font-weight:600;
+    font-size:30px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    line-height:1.05;
+  }
+  .product-name{
+    border:none;
+    background:transparent;
+    font:inherit;
+    font-size:15px;
+    color:var(--ink);
+    padding:2px 0;
+    border-bottom:1px dashed var(--line);
+    width:100%;
+    max-width:340px;
+  }
+  .product-name:focus{outline:none;border-bottom-color:var(--accent);}
+  .unit-toggle{display:flex;gap:0;margin-top:2px;}
+  .unit-toggle button{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:12px;
+    padding:5px 12px;
+    border:1px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .unit-toggle button + button{border-left:none;}
+  .unit-toggle button.active{background:var(--ink);color:var(--paper);}
+  .tb-date{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:16px;
+    white-space:nowrap;
+  }
+  .tb-total{
+    font-family:"Avenir Next Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+    font-weight:700;
+    font-size:44px;
+    line-height:1;
+    color:var(--accent);
+    white-space:nowrap;
+  }
+  .tb-total small{font-size:20px;font-weight:600;letter-spacing:.02em;}
+
+  /* ---------- product bar ---------- */
+  .product-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    padding:9px 24px;
+    border-bottom:1px solid var(--ink);
+    background:#EFF3F5;
+  }
+  .product-bar .eyebrow{margin-right:4px;}
+  .product-bar select{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:12px;
+    padding:4px 8px;
+    border:1px solid var(--ink);
+    background:#FFFFFF;
+    color:var(--ink);
+    max-width:280px;
+  }
+  .pb-btn{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:11px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--muted);
+    padding:4px 10px;
+    cursor:pointer;
+  }
+  .pb-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .pb-btn:disabled{opacity:.4;cursor:default;}
+  .pb-btn:disabled:hover{border-color:var(--line);color:var(--muted);}
+  .pb-spacer{flex:1;}
+
+  /* ---------- gantt ---------- */
+  .gantt-panel{padding:22px 24px 8px;}
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:18px;
+    margin-bottom:14px;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:11px;
+    color:var(--muted);
+  }
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .swatch{width:20px;height:10px;display:inline-block;border:1px solid rgba(23,36,46,.35);}
+  .sw-supply{background:var(--teal);}
+  .sw-prod{background:var(--prod);}
+  .sw-buffer{background:repeating-linear-gradient(45deg,#9AA8B1 0 3px,transparent 3px 6px);}
+  .sw-crit{background:var(--accent);}
+  .sw-stock{width:10px;height:10px;background:var(--teal);transform:rotate(45deg);border:1px solid rgba(23,36,46,.35);}
+
+  .gantt{overflow-x:auto;}
+  .gantt-inner{min-width:640px;position:relative;padding-right:64px;}
+  .redline-overlay{
+    position:absolute;
+    left:200px;
+    right:64px;
+    top:0;
+    bottom:26px;
+    pointer-events:none;
+  }
+  .grow{
+    display:grid;
+    grid-template-columns:200px 1fr;
+    align-items:center;
+    min-height:30px;
+  }
+  .grow.group-head{min-height:24px;margin-top:8px;}
+  .grow.group-head:first-child{margin-top:0;}
+  .glabel{
+    font-size:13px;
+    padding-right:14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .glabel.head{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .gtrack{
+    position:relative;
+    height:100%;
+    min-height:30px;
+    border-left:1px solid var(--line);
+  }
+  .gbar{
+    position:absolute;
+    top:6px;
+    height:16px;
+    border:1px solid rgba(23,36,46,.4);
+  }
+  .gbar.supply{background:var(--teal);}
+  .gbar.supply-buffer{background:repeating-linear-gradient(45deg,var(--teal) 0 3px,rgba(47,107,126,.25) 3px 6px);border-left:none;}
+  .gbar.prod{background:var(--prod);}
+  .gbar.buffer{background:repeating-linear-gradient(45deg,#9AA8B1 0 3px,transparent 3px 6px);}
+  .gbar.crit{background:var(--accent);border-color:#8F2E08;}
+  .gbar.crit.supply-buffer{background:repeating-linear-gradient(45deg,var(--accent) 0 3px,rgba(216,72,15,.25) 3px 6px);}
+  .gbar.crit.buffer{background:repeating-linear-gradient(45deg,var(--accent) 0 3px,transparent 3px 6px);}
+  .gbar-cap{
+    position:absolute;
+    top:7px;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:10px;
+    color:var(--muted);
+    white-space:nowrap;
+    padding-left:6px;
+  }
+  .stock-diamond{
+    position:absolute;
+    top:9px;
+    left:-5px;
+    width:10px;
+    height:10px;
+    background:var(--teal);
+    border:1px solid rgba(23,36,46,.4);
+    transform:rotate(45deg);
+  }
+  .gridline{
+    position:absolute;
+    top:0;bottom:0;
+    width:1px;
+    background:var(--line);
+    opacity:.55;
+  }
+  .redline{
+    position:absolute;
+    top:0;bottom:0;
+    width:2px;
+    background:var(--accent);
+  }
+  .redline-label{
+    position:absolute;
+    top:-2px;
+    transform:translateX(6px);
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:11px;
+    font-weight:600;
+    color:var(--accent);
+    white-space:nowrap;
+  }
+  .axis{
+    position:relative;
+    height:26px;
+    margin-left:200px;
+    border-top:1px solid var(--ink);
+  }
+  .axis-tick{
+    position:absolute;
+    top:4px;
+    transform:translateX(-50%);
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:10px;
+    color:var(--muted);
+  }
+  .gantt-note{
+    margin:12px 0 6px;
+    font-size:12.5px;
+    color:var(--muted);
+    max-width:760px;
+  }
+  .gantt-note b{color:var(--accent);font-weight:600;}
+
+  /* ---------- tables ---------- */
+  .tables{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    border-top:2px solid var(--ink);
+  }
+  .tables > section{padding:18px 24px 24px;}
+  .tables > section + section{border-left:1px solid var(--ink);}
+  h2{
+    margin:0 0 4px;
+    font-family:"Avenir Next Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+    font-weight:600;
+    font-size:19px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .section-sub{margin:0 0 14px;font-size:12.5px;color:var(--muted);}
+  table{width:100%;border-collapse:collapse;}
+  th{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:500;
+    text-align:left;
+    padding:4px 8px 6px 0;
+    border-bottom:1px solid var(--ink);
+  }
+  td{
+    padding:6px 8px 6px 0;
+    border-bottom:1px solid var(--line);
+    vertical-align:middle;
+  }
+  td input[type="text"]{
+    width:100%;
+    border:none;
+    background:transparent;
+    font:inherit;
+    color:var(--ink);
+    padding:2px 0;
+    border-bottom:1px dashed transparent;
+  }
+  td input[type="text"]:hover{border-bottom-color:var(--line);}
+  td input[type="text"]:focus{outline:none;border-bottom-color:var(--accent);}
+  td input[type="number"]{
+    width:62px;
+    border:1px solid var(--line);
+    background:#FFFFFF;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:13px;
+    color:var(--ink);
+    padding:3px 4px 3px 8px;
+  }
+  td input[type="number"]:focus{outline:none;border-color:var(--accent);}
+  td input[type="number"]:disabled{opacity:.35;}
+  td input[type="date"]{
+    width:130px;
+    border:1px solid var(--line);
+    background:#FFFFFF;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:12px;
+    color:var(--ink);
+    padding:3px 4px;
+  }
+  td input[type="date"]:focus{outline:none;border-color:var(--accent);}
+  .stock-toggle{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:11px;
+    padding:3px 8px;
+    border:1px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .stock-toggle.stocked{background:var(--teal);border-color:var(--teal);color:#FFFFFF;}
+  .stock-toggle.dated{background:var(--prod);border-color:var(--prod);color:#FFFFFF;}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;}
+  .chip{
+    font-size:11px;
+    padding:2px 8px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .chip.on{background:var(--prod);border-color:var(--prod);color:#FFFFFF;}
+  .rowbtn{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:14px;
+    padding:2px 4px;
+    line-height:1;
+  }
+  .rowbtn:hover{color:var(--accent);}
+  .add-btn{
+    margin-top:12px;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:12px;
+    padding:6px 14px;
+    border:1px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .add-btn:hover{background:var(--ink);color:var(--paper);}
+  .buffer-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px solid var(--ink);
+  }
+  .buffer-row label{font-size:13px;}
+  .buffer-row input{
+    width:62px;
+    border:1px solid var(--line);
+    background:#FFFFFF;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:13px;
+    padding:3px 4px 3px 8px;
+  }
+  .buffer-row input:focus{outline:none;border-color:var(--accent);}
+  .buffer-hint{font-size:12px;color:var(--muted);}
+
+  /* ---------- order-by panel ---------- */
+  .orderby-panel{
+    padding:18px 24px 24px;
+    border-top:2px solid var(--ink);
+  }
+  .target-label{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    margin-bottom:12px;
+  }
+  .target-label input{
+    border:1px solid var(--line);
+    background:#FFFFFF;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:13px;
+    color:var(--ink);
+    padding:4px 6px;
+  }
+  .target-label input:focus{outline:none;border-color:var(--accent);}
+  .orderby-note{margin:0 0 12px;font-size:12.5px;color:var(--muted);}
+  .orderby-note.warn{color:var(--accent);font-weight:600;}
+  .margin-ok{color:var(--teal);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;}
+  .margin-late{color:var(--accent);font-weight:600;font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;}
+  .ob-date{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:12px;white-space:nowrap;}
+
+  .sheet-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:10px 24px;
+    border-top:2px solid var(--ink);
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:11px;
+    color:var(--muted);
+  }
+  .reset-btn{
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;
+    font-size:11px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--muted);
+    padding:4px 10px;
+    cursor:pointer;
+  }
+  .reset-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  button:focus-visible, input:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .gbar{transition:left .18s ease,width .18s ease;}
+  @media (prefers-reduced-motion:reduce){.gbar{transition:none;}}
+  @media (max-width:860px){
+    .titleblock{grid-template-columns:1fr 1fr;}
+    .tb-cell{border-top:1px solid var(--ink);}
+    .titleblock .tb-cell:nth-child(-n+2){border-top:none;}
+    .titleblock .tb-cell:nth-child(3){border-left:none;}
+    .tables{grid-template-columns:1fr;}
+    .tables > section + section{border-left:none;border-top:1px solid var(--ink);}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <header class="titleblock">
+    <div class="tb-cell">
+      <h1>Lead Time Planner</h1>
+      <input class="product-name" id="productName" type="text" aria-label="Product name" />
+    </div>
+    <div class="tb-cell">
+      <span class="eyebrow">Time unit</span>
+      <div class="unit-toggle" role="group" aria-label="Time unit">
+        <button type="button" id="unitWk">weeks</button>
+        <button type="button" id="unitDay">work days</button>
+      </div>
+    </div>
+    <div class="tb-cell">
+      <span class="eyebrow">Order today, ready by</span>
+      <span class="tb-date" id="readyDate">–</span>
+    </div>
+    <div class="tb-cell">
+      <span class="eyebrow">Customer lead time</span>
+      <span class="tb-total" id="totalOut">–</span>
+    </div>
+  </header>
+
+  <div class="product-bar">
+    <span class="eyebrow">Product</span>
+    <select id="productSelect" aria-label="Select product"></select>
+    <button type="button" class="pb-btn" id="newProduct">+ New</button>
+    <button type="button" class="pb-btn" id="dupProduct">Duplicate</button>
+    <button type="button" class="pb-btn" id="delProduct">Delete</button>
+    <span class="pb-spacer"></span>
+    <button type="button" class="pb-btn" id="exportBtn">Export JSON</button>
+    <button type="button" class="pb-btn" id="importBtn">Import JSON</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden />
+  </div>
+
+  <section class="gantt-panel">
+    <div class="legend">
+      <span><i class="swatch sw-supply"></i>supply</span>
+      <span><i class="swatch sw-stock"></i>on stock, available day 0</span>
+      <span><i class="swatch sw-prod"></i>production</span>
+      <span><i class="swatch sw-buffer"></i>buffer</span>
+      <span><i class="swatch sw-crit"></i>critical path</span>
+    </div>
+    <div class="gantt"><div class="gantt-inner" id="ganttInner"></div></div>
+    <p class="gantt-note">A step starts when the previous step is finished and every part it waits for has arrived. Parts not linked to any step are counted before dispatch. <b>The orange chain sets the quote.</b> Shorten it, or put its gating part on stock, and the lead time drops.</p>
+  </section>
+
+  <section class="orderby-panel">
+    <h2>Order-by dates</h2>
+    <p class="section-sub">Plan backwards: pick a wished ready-for-pickup date and get the latest safe order date for every part, most urgent first.</p>
+    <label class="target-label" for="targetDate">Wished delivery
+      <input type="date" id="targetDate" />
+    </label>
+    <p class="orderby-note" id="orderbyNote"></p>
+    <table id="orderbyTable" hidden>
+      <thead>
+        <tr>
+          <th>Part</th>
+          <th style="width:150px;">Needed in-house by</th>
+          <th style="width:190px;">Action</th>
+          <th style="width:150px;">Margin</th>
+        </tr>
+      </thead>
+      <tbody id="orderbyBody"></tbody>
+    </table>
+  </section>
+
+  <div class="tables">
+    <section>
+      <h2>Parts &amp; supply</h2>
+      <p class="section-sub">Cycle the source button: order (lead time), stock (day 0), or date (fixed arrival, recalculated from today).</p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px;">Source</th>
+            <th>Part</th>
+            <th style="width:80px;">Lead <span class="unit-label"></span></th>
+            <th style="width:80px;">Risk <span class="unit-label"></span></th>
+            <th style="width:28px;"></th>
+          </tr>
+        </thead>
+        <tbody id="compBody"></tbody>
+      </table>
+      <button type="button" class="add-btn" id="addComp">+ Add part</button>
+    </section>
+
+    <section>
+      <h2>Production steps</h2>
+      <p class="section-sub">Steps run in order. Click part chips to say what each step waits for.</p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px;"></th>
+            <th>Step</th>
+            <th style="width:80px;">Dur. <span class="unit-label"></span></th>
+            <th>Waits for</th>
+            <th style="width:28px;"></th>
+          </tr>
+        </thead>
+        <tbody id="stepBody"></tbody>
+      </table>
+      <button type="button" class="add-btn" id="addStep">+ Add step</button>
+      <div class="buffer-row">
+        <label for="finalBuffer">Dispatch buffer</label>
+        <input type="number" id="finalBuffer" min="0" step="0.5" />
+        <span class="buffer-hint">covers test surprises, packing, shipping prep</span>
+      </div>
+    </section>
+  </div>
+
+  <footer class="sheet-foot">
+    <span>Edits save in this browser automatically. Export JSON to keep a file per product.</span>
+    <button type="button" class="reset-btn" id="resetBtn">Reset to example</button>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORE_KEY = "leadtime-planner-v2";
+  var OLD_KEY = "leadtime-planner-v1";
+  var EPS = 1e-9;
+
+  function defaults(){
+    return {
+      productName: "Example hardware unit",
+      unit: "wk",
+      finalBuffer: 1,
+      components: [
+        {id:"c1", name:"Core module (custom, long lead)", lead:16, buffer:2, onStock:false},
+        {id:"c2", name:"Custom mechanics", lead:8, buffer:1, onStock:false},
+        {id:"c3", name:"Enclosure / housing", lead:10, buffer:1, onStock:false},
+        {id:"c4", name:"Controller / compute unit", lead:4, buffer:0, onStock:true},
+        {id:"c5", name:"Cooling unit", lead:6, buffer:0, onStock:true}
+      ],
+      steps: [
+        {id:"s1", name:"Module assembly", duration:3, needs:["c1","c2"]},
+        {id:"s2", name:"Test & calibration", duration:2, needs:[]},
+        {id:"s3", name:"System integration", duration:2, needs:["c3","c4","c5"]},
+        {id:"s4", name:"Final acceptance test", duration:1, needs:[]}
+      ]
+    };
+  }
+
+  var root = load();
+  var state = activeProduct().data;
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        var r = JSON.parse(raw);
+        if(r && r.products && r.products.length) return r;
+      }
+    }catch(e){}
+    try{
+      var old = localStorage.getItem(OLD_KEY);
+      if(old){
+        var s = JSON.parse(old);
+        if(s && s.components && s.steps){
+          return {activeId:"p1", products:[{id:"p1", data:s}]};
+        }
+      }
+    }catch(e){}
+    return {activeId:"p1", products:[{id:"p1", data:defaults()}]};
+  }
+  function activeProduct(){
+    var p = root.products.filter(function(x){ return x.id === root.activeId; })[0];
+    if(!p){ p = root.products[0]; root.activeId = p.id; }
+    return p;
+  }
+  function save(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(root)); }catch(e){}
+  }
+  function num(v){ var n = parseFloat(v); return isFinite(n) && n > 0 ? n : 0; }
+  function modeOf(c){ return c.mode || (c.onStock ? "stock" : "order"); }
+  function todayMid(){ var d = new Date(); d.setHours(0,0,0,0); return d; }
+  function parseDate(s){
+    if(!s) return null;
+    var p = String(s).split("-");
+    if(p.length !== 3) return null;
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    d.setHours(0,0,0,0);
+    return isFinite(d.getTime()) ? d : null;
+  }
+  function unitsFromToday(dateStr){
+    var d = parseDate(dateStr);
+    if(!d) return 0;
+    var t = todayMid();
+    if(d <= t) return 0;
+    if(state.unit === "wk") return (d - t) / (86400000 * 7);
+    var n = 0, cur = new Date(t);
+    while(cur < d){
+      cur.setDate(cur.getDate() + 1);
+      var wd = cur.getDay();
+      if(wd !== 0 && wd !== 6) n += 1;
+    }
+    return n;
+  }
+  function dateFromUnits(u){
+    var d = todayMid();
+    if(state.unit === "wk"){
+      d.setDate(d.getDate() + Math.floor(u * 7));
+      return d;
+    }
+    var left = Math.floor(u);
+    while(left > 0){
+      d.setDate(d.getDate() + 1);
+      var wd = d.getDay();
+      if(wd !== 0 && wd !== 6) left -= 1;
+    }
+    return d;
+  }
+  function fmtDate(d){
+    return d.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+  }
+  function newId(p){
+    return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ---------- schedule math ---------- */
+  function compute(){
+    var comps = state.components.map(function(c){
+      var mode = modeOf(c);
+      var eff = 0;
+      if(mode === "order") eff = num(c.lead) + num(c.buffer);
+      if(mode === "date") eff = unitsFromToday(c.dueDate) + num(c.buffer);
+      return {id:c.id, name:c.name, lead:num(c.lead), buffer:num(c.buffer),
+              mode:mode, dueDate:c.dueDate || "", onStock:mode === "stock", eff:eff};
+    });
+    var byId = {};
+    comps.forEach(function(c){ byId[c.id] = c; });
+
+    var assigned = {};
+    var prevEnd = 0;
+    var steps = state.steps.map(function(s, i){
+      var gate = 0, gateId = null;
+      (s.needs || []).forEach(function(id){
+        var c = byId[id];
+        if(!c) return;
+        assigned[id] = true;
+        if(c.eff > gate + EPS){ gate = c.eff; gateId = id; }
+      });
+      var start = Math.max(prevEnd, gate);
+      var st = {id:s.id, name:s.name, duration:num(s.duration), needs:s.needs || [],
+                start:start, end:start + num(s.duration), gate:gate, gateId:gateId, prevEnd:prevEnd};
+      prevEnd = st.end;
+      return st;
+    });
+
+    var prodEnd = prevEnd;
+    var unassignedMax = 0, unassignedId = null;
+    comps.forEach(function(c){
+      if(!assigned[c.id] && c.eff > unassignedMax + EPS){ unassignedMax = c.eff; unassignedId = c.id; }
+    });
+    var dispatchStart = Math.max(prodEnd, unassignedMax);
+    var buffer = num(state.finalBuffer);
+    var total = dispatchStart + buffer;
+
+    var critSteps = {};
+    var critComp = null;
+    if(unassignedMax > prodEnd + EPS){
+      critComp = unassignedId;
+    }else{
+      for(var i = steps.length - 1; i >= 0; i--){
+        critSteps[steps[i].id] = true;
+        if(steps[i].gate > steps[i].prevEnd + EPS){
+          critComp = steps[i].gateId;
+          break;
+        }
+      }
+    }
+    return {comps:comps, steps:steps, dispatchStart:dispatchStart, buffer:buffer,
+            total:total, critSteps:critSteps, critComp:critComp};
+  }
+
+  /* ---------- formatting ---------- */
+  function fmt(n){
+    var r = Math.round(n * 10) / 10;
+    return (r % 1 === 0) ? String(r) : r.toFixed(1);
+  }
+  function unitShort(){ return state.unit === "wk" ? "wk" : "d"; }
+  function readyDate(total){
+    var d = new Date();
+    if(state.unit === "wk"){
+      d.setDate(d.getDate() + Math.ceil(total * 7));
+    }else{
+      var left = Math.ceil(total);
+      while(left > 0){
+        d.setDate(d.getDate() + 1);
+        var wd = d.getDay();
+        if(wd !== 0 && wd !== 6) left -= 1;
+      }
+    }
+    return d.toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+  }
+  function tickStep(total){
+    var targets = [1,2,4,5,8,10,20,25,50,100];
+    for(var i = 0; i < targets.length; i++){
+      if(total / targets[i] <= 14) return targets[i];
+    }
+    return Math.ceil(total / 12);
+  }
+
+  /* ---------- render: header + gantt ---------- */
+  function renderResult(){
+    var r = compute();
+    document.getElementById("totalOut").innerHTML =
+      r.total > 0 ? fmt(r.total) + " <small>" + unitShort() + "</small>" : "–";
+    document.getElementById("readyDate").textContent = r.total > 0 ? readyDate(r.total) : "–";
+    renderGantt(r);
+    renderOrderBy(r);
+  }
+
+  function renderOrderBy(r){
+    var input = document.getElementById("targetDate");
+    if(input.value !== (state.targetDate || "")) input.value = state.targetDate || "";
+    var note = document.getElementById("orderbyNote");
+    var table = document.getElementById("orderbyTable");
+    var body = document.getElementById("orderbyBody");
+    if(!state.targetDate || !parseDate(state.targetDate)){
+      note.className = "orderby-note";
+      note.textContent = "No date set. The forward result above stays the answer for orders placed today.";
+      table.hidden = true;
+      body.innerHTML = "";
+      return;
+    }
+    var tgt = unitsFromToday(state.targetDate);
+    var buffer = num(state.finalBuffer);
+
+    var latestStart = {};
+    var le = tgt - buffer;
+    for(var i = r.steps.length - 1; i >= 0; i--){
+      var ls = le - r.steps[i].duration;
+      latestStart[r.steps[i].id] = ls;
+      le = ls;
+    }
+
+    var rows = r.comps.map(function(c){
+      if(c.mode === "stock") return null;
+      var la = null;
+      r.steps.forEach(function(s){
+        if(s.needs.indexOf(c.id) >= 0){
+          var v = latestStart[s.id];
+          if(la === null || v < la) la = v;
+        }
+      });
+      if(la === null) la = tgt - buffer;
+      var arrival = la - c.buffer;
+      if(c.mode === "date"){
+        var slack = arrival - unitsFromToday(c.dueDate);
+        return {name:c.name, needBy:dateFromUnits(Math.max(0, arrival)), slack:slack,
+                action:"Due " + (c.dueDate ? fmtDate(parseDate(c.dueDate)) : "(no date set)"),
+                late: slack < -EPS};
+      }
+      var orderBy = arrival - c.lead;
+      return {name:c.name, needBy:dateFromUnits(Math.max(0, arrival)), slack:orderBy,
+              action:"Order by " + fmtDate(dateFromUnits(Math.max(0, orderBy))),
+              late: orderBy < -EPS};
+    }).filter(Boolean);
+
+    rows.sort(function(a, b){ return a.slack - b.slack; });
+
+    if(tgt + EPS < r.total){
+      note.className = "orderby-note warn";
+      note.textContent = "This date is not reachable even if everything is ordered today. Earliest ready-for-pickup: " + readyDate(r.total) + ".";
+    }else{
+      note.className = "orderby-note";
+      var margin = tgt - r.total;
+      note.textContent = "Reachable. Ordering everything today leaves " + fmt(margin) + " " + unitShort() + " of slack against this date.";
+    }
+
+    if(rows.length === 0){
+      table.hidden = true;
+      body.innerHTML = "";
+      return;
+    }
+    table.hidden = false;
+    body.innerHTML = rows.map(function(x){
+      var m = x.late
+        ? '<span class="margin-late">late by ' + fmt(Math.abs(x.slack)) + " " + unitShort() + '</span>'
+        : '<span class="margin-ok">' + fmt(x.slack) + " " + unitShort() + ' margin</span>';
+      return '<tr>' +
+        '<td>' + esc(x.name) + '</td>' +
+        '<td class="ob-date">' + fmtDate(x.needBy) + '</td>' +
+        '<td class="ob-date"' + (x.late ? ' style="color:var(--accent);font-weight:600;"' : '') + '>' + esc(x.action) + '</td>' +
+        '<td>' + m + '</td>' +
+        '</tr>';
+    }).join("");
+  }
+
+  function renderGantt(r){
+    var el = document.getElementById("ganttInner");
+    var T = Math.max(r.total, 1);
+    var pct = function(v){ return (v / T * 100).toFixed(3) + "%"; };
+    var h = "";
+
+    h += '<div class="grow group-head"><div class="glabel head">Supply</div><div class="gtrack" style="min-height:24px;"></div></div>';
+    if(r.comps.length === 0){
+      h += '<div class="grow"><div class="glabel" style="color:var(--muted);">No parts yet. Add one below.</div><div class="gtrack"></div></div>';
+    }
+    r.comps.forEach(function(c){
+      var crit = (r.critComp === c.id);
+      h += '<div class="grow"><div class="glabel">' + esc(c.name) + '</div><div class="gtrack">' + grid(T);
+      if(c.onStock){
+        h += '<span class="stock-diamond"></span><span class="gbar-cap" style="left:0;">on stock</span>';
+      }else if(c.eff > 0){
+        var cls = crit ? " crit" : "";
+        var base = Math.max(0, c.eff - c.buffer);
+        if(base > 0){
+          h += '<div class="gbar supply' + cls + '" style="left:0;width:' + pct(base) + ';"></div>';
+        }
+        if(c.buffer > 0){
+          h += '<div class="gbar supply-buffer' + cls + '" style="left:' + pct(base) + ';width:' + pct(c.buffer) + ';"></div>';
+        }
+        var cap = fmt(c.eff);
+        if(c.mode === "date" && c.dueDate) cap += " (due " + esc(c.dueDate) + ")";
+        h += '<span class="gbar-cap" style="left:' + pct(c.eff) + ';">' + cap + '</span>';
+      }else if(c.mode === "date"){
+        h += '<span class="stock-diamond"></span><span class="gbar-cap" style="left:0;">' +
+             (c.dueDate ? "arrived" : "no date set") + '</span>';
+      }
+      h += '</div></div>';
+    });
+
+    h += '<div class="grow group-head"><div class="glabel head">Production</div><div class="gtrack" style="min-height:24px;"></div></div>';
+    if(r.steps.length === 0){
+      h += '<div class="grow"><div class="glabel" style="color:var(--muted);">No steps yet. Add one below.</div><div class="gtrack"></div></div>';
+    }
+    r.steps.forEach(function(s){
+      var cls = r.critSteps[s.id] ? " crit" : "";
+      h += '<div class="grow"><div class="glabel">' + esc(s.name) + '</div><div class="gtrack">' + grid(T);
+      if(s.duration > 0){
+        h += '<div class="gbar prod' + cls + '" style="left:' + pct(s.start) + ';width:' + pct(s.duration) + ';"></div>';
+      }
+      h += '<span class="gbar-cap" style="left:' + pct(s.end) + ';">' + fmt(s.end) + '</span>';
+      h += '</div></div>';
+    });
+
+    if(r.buffer > 0){
+      h += '<div class="grow"><div class="glabel">Dispatch buffer</div><div class="gtrack">' + grid(T);
+      h += '<div class="gbar buffer crit" style="left:' + pct(r.dispatchStart) + ';width:' + pct(r.buffer) + ';"></div>';
+      h += '</div></div>';
+    }
+
+    if(r.total > 0){
+      h += '<div class="redline-overlay"><div class="redline" style="left:' + pct(r.total) + ';">' +
+           '<span class="redline-label">' + fmt(r.total) + " " + unitShort() + '</span></div></div>';
+    }
+
+    h += '<div class="axis">' + axisTicks(T) + '</div>';
+    el.innerHTML = h;
+  }
+
+  function grid(T){
+    var st = tickStep(T), h = "";
+    for(var v = st; v < T - EPS; v += st){
+      h += '<div class="gridline" style="left:' + (v / T * 100).toFixed(3) + '%;"></div>';
+    }
+    return h;
+  }
+  function axisTicks(T){
+    var st = tickStep(T), h = "";
+    h += '<span class="axis-tick" style="left:0;">0</span>';
+    for(var v = st; v <= T + EPS; v += st){
+      h += '<span class="axis-tick" style="left:' + (v / T * 100).toFixed(3) + '%;">' + fmt(v) + '</span>';
+    }
+    h += '<span class="axis-tick" style="left:100%;transform:translateX(8px);">' + unitShort() + '</span>';
+    return h;
+  }
+
+  /* ---------- render: tables ---------- */
+  function renderTables(){
+    var cb = document.getElementById("compBody");
+    cb.innerHTML = state.components.map(function(c){
+      var mode = modeOf(c);
+      var btnCls = mode === "stock" ? " stocked" : (mode === "date" ? " dated" : "");
+      var leadCell;
+      if(mode === "date"){
+        leadCell = '<input type="date" data-field="dueDate" value="' + esc(c.dueDate || "") + '" aria-label="Arrival date" />';
+      }else{
+        leadCell = '<input type="number" data-field="lead" min="0" step="0.5" value="' + num(c.lead) + '"' +
+                   (mode === "stock" ? ' disabled' : '') + ' aria-label="Lead time" />';
+      }
+      return '<tr data-id="' + c.id + '">' +
+        '<td><button type="button" class="stock-toggle' + btnCls + '" data-act="stock" title="Click to cycle: order, stock, date">' + mode + '</button></td>' +
+        '<td><input type="text" data-field="name" value="' + esc(c.name) + '" aria-label="Part name" /></td>' +
+        '<td>' + leadCell + '</td>' +
+        '<td><input type="number" data-field="buffer" min="0" step="0.5" value="' + num(c.buffer) + '"' + (mode === "stock" ? ' disabled' : '') + ' aria-label="Risk buffer" /></td>' +
+        '<td><button type="button" class="rowbtn" data-act="del" aria-label="Remove part">&#10005;</button></td>' +
+        '</tr>';
+    }).join("");
+
+    var sb = document.getElementById("stepBody");
+    sb.innerHTML = state.steps.map(function(s, i){
+      var chips = state.components.map(function(c){
+        var on = (s.needs || []).indexOf(c.id) >= 0;
+        return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-act="chip" data-comp="' + c.id + '">' + esc(shortName(c.name)) + '</button>';
+      }).join("");
+      return '<tr data-id="' + s.id + '">' +
+        '<td style="white-space:nowrap;">' +
+          '<button type="button" class="rowbtn" data-act="up" aria-label="Move up"' + (i === 0 ? ' disabled' : '') + '>&#9650;</button>' +
+          '<button type="button" class="rowbtn" data-act="down" aria-label="Move down"' + (i === state.steps.length - 1 ? ' disabled' : '') + '>&#9660;</button>' +
+        '</td>' +
+        '<td><input type="text" data-field="name" value="' + esc(s.name) + '" aria-label="Step name" /></td>' +
+        '<td><input type="number" data-field="duration" min="0" step="0.5" value="' + s.duration + '" aria-label="Duration" /></td>' +
+        '<td><div class="chips">' + (chips || '<span class="buffer-hint">add parts first</span>') + '</div></td>' +
+        '<td><button type="button" class="rowbtn" data-act="del" aria-label="Remove step">&#10005;</button></td>' +
+        '</tr>';
+    }).join("");
+  }
+  function shortName(n){
+    n = String(n);
+    var cut = n.indexOf("(");
+    if(cut > 3) n = n.slice(0, cut);
+    n = n.trim();
+    return n.length > 18 ? n.slice(0, 17) + "…" : n;
+  }
+
+  function renderUnit(){
+    document.getElementById("unitWk").classList.toggle("active", state.unit === "wk");
+    document.getElementById("unitDay").classList.toggle("active", state.unit !== "wk");
+    var lbl = state.unit === "wk" ? "(wk)" : "(d)";
+    document.querySelectorAll(".unit-label").forEach(function(el){ el.textContent = lbl; });
+  }
+
+  function renderProductBar(){
+    var sel = document.getElementById("productSelect");
+    sel.innerHTML = root.products.map(function(p){
+      return '<option value="' + p.id + '"' + (p.id === root.activeId ? ' selected' : '') + '>' +
+             esc(p.data.productName || "Untitled") + '</option>';
+    }).join("");
+    document.getElementById("delProduct").disabled = root.products.length < 2;
+  }
+
+  function renderAll(){
+    document.getElementById("productName").value = state.productName || "";
+    document.getElementById("finalBuffer").value = state.finalBuffer;
+    renderProductBar();
+    renderUnit();
+    renderTables();
+    renderResult();
+  }
+
+  /* ---------- events ---------- */
+  function findComp(id){ return state.components.filter(function(c){ return c.id === id; })[0]; }
+  function findStep(id){ return state.steps.filter(function(s){ return s.id === id; })[0]; }
+
+  document.getElementById("compBody").addEventListener("input", function(e){
+    var tr = e.target.closest("tr"); if(!tr) return;
+    var c = findComp(tr.getAttribute("data-id")); if(!c) return;
+    var f = e.target.getAttribute("data-field");
+    if(f === "name") c.name = e.target.value;
+    if(f === "lead") c.lead = num(e.target.value);
+    if(f === "buffer") c.buffer = num(e.target.value);
+    if(f === "dueDate") c.dueDate = e.target.value;
+    save(); renderResult();
+  });
+  document.getElementById("compBody").addEventListener("click", function(e){
+    var btn = e.target.closest("button"); if(!btn) return;
+    var tr = btn.closest("tr");
+    var id = tr.getAttribute("data-id");
+    var act = btn.getAttribute("data-act");
+    if(act === "stock"){
+      var c = findComp(id);
+      var next = {"order":"stock", "stock":"date", "date":"order"};
+      c.mode = next[modeOf(c)];
+      c.onStock = (c.mode === "stock");
+    }else if(act === "del"){
+      state.components = state.components.filter(function(c){ return c.id !== id; });
+      state.steps.forEach(function(s){ s.needs = (s.needs || []).filter(function(n){ return n !== id; }); });
+    }else{ return; }
+    save(); renderTables(); renderResult();
+  });
+
+  document.getElementById("stepBody").addEventListener("input", function(e){
+    var tr = e.target.closest("tr"); if(!tr) return;
+    var s = findStep(tr.getAttribute("data-id")); if(!s) return;
+    var f = e.target.getAttribute("data-field");
+    if(f === "name") s.name = e.target.value;
+    if(f === "duration") s.duration = num(e.target.value);
+    save(); renderResult();
+  });
+  document.getElementById("stepBody").addEventListener("click", function(e){
+    var btn = e.target.closest("button"); if(!btn) return;
+    var tr = btn.closest("tr");
+    var id = tr.getAttribute("data-id");
+    var act = btn.getAttribute("data-act");
+    var idx = state.steps.findIndex(function(s){ return s.id === id; });
+    if(act === "del"){
+      state.steps.splice(idx, 1);
+    }else if(act === "up" && idx > 0){
+      var a = state.steps.splice(idx, 1)[0]; state.steps.splice(idx - 1, 0, a);
+    }else if(act === "down" && idx < state.steps.length - 1){
+      var b = state.steps.splice(idx, 1)[0]; state.steps.splice(idx + 1, 0, b);
+    }else if(act === "chip"){
+      var s = state.steps[idx];
+      var comp = btn.getAttribute("data-comp");
+      var pos = (s.needs || []).indexOf(comp);
+      if(pos >= 0) s.needs.splice(pos, 1); else s.needs.push(comp);
+    }else{ return; }
+    save(); renderTables(); renderResult();
+  });
+
+  document.getElementById("addComp").addEventListener("click", function(){
+    state.components.push({id:newId("c"), name:"New part", lead:4, buffer:0, onStock:false});
+    save(); renderTables(); renderResult();
+  });
+  document.getElementById("addStep").addEventListener("click", function(){
+    state.steps.push({id:newId("s"), name:"New step", duration:1, needs:[]});
+    save(); renderTables(); renderResult();
+  });
+  document.getElementById("finalBuffer").addEventListener("input", function(e){
+    state.finalBuffer = num(e.target.value);
+    save(); renderResult();
+  });
+  document.getElementById("targetDate").addEventListener("input", function(e){
+    state.targetDate = e.target.value;
+    save(); renderResult();
+  });
+  document.getElementById("productName").addEventListener("input", function(e){
+    state.productName = e.target.value;
+    var opt = document.querySelector('#productSelect option[value="' + root.activeId + '"]');
+    if(opt) opt.textContent = state.productName || "Untitled";
+    save();
+  });
+
+  document.getElementById("productSelect").addEventListener("change", function(e){
+    root.activeId = e.target.value;
+    state = activeProduct().data;
+    save(); renderAll();
+  });
+  document.getElementById("newProduct").addEventListener("click", function(){
+    var d = defaults();
+    d.productName = "New product";
+    var p = {id:newId("p"), data:d};
+    root.products.push(p);
+    root.activeId = p.id;
+    state = d;
+    save(); renderAll();
+    document.getElementById("productName").focus();
+    document.getElementById("productName").select();
+  });
+  document.getElementById("dupProduct").addEventListener("click", function(){
+    var copy = JSON.parse(JSON.stringify(state));
+    copy.productName = (copy.productName || "Untitled") + " (copy)";
+    var p = {id:newId("p"), data:copy};
+    root.products.push(p);
+    root.activeId = p.id;
+    state = copy;
+    save(); renderAll();
+  });
+  var delArmed = false, delTimer = null;
+  document.getElementById("delProduct").addEventListener("click", function(e){
+    if(root.products.length < 2) return;
+    if(!delArmed){
+      delArmed = true;
+      e.target.textContent = "Click again to delete";
+      delTimer = setTimeout(function(){
+        delArmed = false;
+        document.getElementById("delProduct").textContent = "Delete";
+      }, 3000);
+      return;
+    }
+    clearTimeout(delTimer);
+    delArmed = false;
+    e.target.textContent = "Delete";
+    root.products = root.products.filter(function(p){ return p.id !== root.activeId; });
+    root.activeId = root.products[0].id;
+    state = activeProduct().data;
+    save(); renderAll();
+  });
+  document.getElementById("exportBtn").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    var slug = (state.productName || "product").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "product";
+    a.download = "lead-time-" + slug + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  });
+  document.getElementById("importBtn").addEventListener("click", function(){
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", function(e){
+    var f = e.target.files[0];
+    if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      var btn = document.getElementById("importBtn");
+      try{
+        var d = JSON.parse(rd.result);
+        if(!d || !d.components || !d.steps) throw new Error("not a planner file");
+        var p = {id:newId("p"), data:d};
+        root.products.push(p);
+        root.activeId = p.id;
+        state = d;
+        save(); renderAll();
+      }catch(err){
+        btn.textContent = "Not a planner file";
+        setTimeout(function(){ btn.textContent = "Import JSON"; }, 3000);
+      }
+    };
+    rd.readAsText(f);
+    e.target.value = "";
+  });
+  function setUnit(u){
+    if(state.unit === u) return;
+    var factor = (u === "d") ? 5 : 1 / 5;
+    var conv = function(v){ return Math.round(num(v) * factor * 100) / 100; };
+    state.components.forEach(function(c){
+      c.lead = conv(c.lead);
+      c.buffer = conv(c.buffer);
+    });
+    state.steps.forEach(function(s){ s.duration = conv(s.duration); });
+    state.finalBuffer = conv(state.finalBuffer);
+    state.unit = u;
+    save(); renderAll();
+  }
+  document.getElementById("unitWk").addEventListener("click", function(){ setUnit("wk"); });
+  document.getElementById("unitDay").addEventListener("click", function(){ setUnit("d"); });
+  var resetArmed = false, resetTimer = null;
+  document.getElementById("resetBtn").addEventListener("click", function(e){
+    if(!resetArmed){
+      resetArmed = true;
+      e.target.textContent = "Click again to replace everything with the example";
+      resetTimer = setTimeout(function(){
+        resetArmed = false;
+        document.getElementById("resetBtn").textContent = "Reset to example";
+      }, 3000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    resetArmed = false;
+    e.target.textContent = "Reset to example";
+    var p = activeProduct();
+    p.data = defaults();
+    state = p.data;
+    save(); renderAll();
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

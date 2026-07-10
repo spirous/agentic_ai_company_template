@@ -15,8 +15,9 @@ Output, max 25 lines:
 Never include product pitch material. If the user's stated goal is validation of our idea, reframe it to learning their current behavior first.
 
 ## MODE 2 — DEBRIEF (after a conversation)
-Input: rough dictated notes from the user.
+Input: rough dictated notes from the user, plus the latest prep for this account from `work/customer-discovery/preps/` if one exists.
 Actions:
+0. If a prep exists: score each of its big questions as ANSWERED (cite the fact), PARTLY, or UNTOUCHED. Untouched big questions carry over into "what we want to learn" and the next prep.
 1. Classify every substantive statement using the rubric: FACT (past behavior, specifics), COMMITMENT (time / reputation / money given), COMPLIMENT, FLUFF (generic claims, hypotheticals, futures), IDEA (their feature requests — dig for the motivation behind them).
 2. Extract jobs-to-be-done: what task were they trying to get done, how do they do it today, what does the current way cost them (time, money, risk), where does it hurt.
 3. Score the conversation's evidence quality: STRONG (facts + a commitment), MODERATE (facts, no commitment), WEAK (mostly fluff/compliments — say so plainly).

@@ -1,0 +1,24 @@
+{
+  "productName": "Example hardware unit",
+  "unit": "wk",
+  "finalBuffer": 1,
+  "_notes": [
+    "Example model shipped with the template. Lead times are reorder lead times (fresh PO to goods-in).",
+    "Source button cycles per part: order (lead time from today), stock (available day 0), or date (fixed arrival).",
+    "The orange chain in the Gantt is the critical path — it sets the quoted customer lead time.",
+    "Replace these parts and steps with your own, or use + New / Import JSON for another product."
+  ],
+  "components": [
+    {"id": "c1", "name": "Core module (custom, long lead)", "lead": 16, "buffer": 2, "onStock": false},
+    {"id": "c2", "name": "Custom mechanics", "lead": 8, "buffer": 1, "onStock": false},
+    {"id": "c3", "name": "Enclosure / housing", "lead": 10, "buffer": 1, "onStock": false},
+    {"id": "c4", "name": "Controller / compute unit", "lead": 4, "buffer": 0, "onStock": true},
+    {"id": "c5", "name": "Cooling unit", "lead": 6, "buffer": 0, "onStock": true}
+  ],
+  "steps": [
+    {"id": "s1", "name": "Module assembly", "duration": 3, "needs": ["c1", "c2"]},
+    {"id": "s2", "name": "Test & calibration", "duration": 2, "needs": []},
+    {"id": "s3", "name": "System integration", "duration": 2, "needs": ["c3", "c4", "c5"]},
+    {"id": "s4", "name": "Final acceptance test", "duration": 1, "needs": []}
+  ]
+}
